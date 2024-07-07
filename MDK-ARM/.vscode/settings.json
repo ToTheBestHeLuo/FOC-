@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "main.h": "c",
+        "mcconfig.h": "c",
+        "mcvar.h": "c",
+        "mctype.h": "c",
+        "stm32g4xx_it.h": "c",
+        "mcmath.h": "c",
+        "mctask.h": "c"
+    }
+}

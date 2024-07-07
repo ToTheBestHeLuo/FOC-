@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "mctype.h": "c",
+        "mctask.h": "c",
+        "mcconfig.h": "c",
+        "mcmath.h": "c"
+    }
+}

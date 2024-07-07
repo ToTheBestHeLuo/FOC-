@@ -1,0 +1,1 @@
+stm32g431rbt6_mc_abz\startup_stm32g431xx.o: startup_stm32g431xx.s
