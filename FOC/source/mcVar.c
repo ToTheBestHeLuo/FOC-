@@ -1,8 +1,8 @@
 /*
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
- * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
- * @LastEditTime: 2024-07-06 19:22:06
+ * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
+ * @LastEditTime: 2024-07-08 11:39:56
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcVar.c
  * @Description: 
  * 
@@ -10,11 +10,13 @@
  */
 #include "../include/mcVar.h"
 #include "../interface/mcConfig.h"
+#include "../include/mcMath.h"
 
 volatile MCSysHandler mcSystemHandler = {
     .sysStu = eWaitSysReset
 };
 volatile SvpwmHandler svpwmHandler;
+volatile MC_MotorPar motorParHandler;
 volatile IncABZEncoder incABZHandler;
 volatile SensorHandler sensorHandler;
 volatile HFPIHandler hfpiHandler;
@@ -29,6 +31,7 @@ volatile NonlinearFluxObsHandler NonlinearFluxHandler;
 
 volatile MCSysHandler* pSys = &mcSystemHandler;
 volatile SvpwmHandler* pSVP = &svpwmHandler;
+volatile MC_MotorPar* pMotor = &motorParHandler;
 volatile IncABZEncoder* pIncABZ = &incABZHandler;
 volatile SensorHandler* pSens = &sensorHandler;
 volatile HFPIHandler* pHFPI = &hfpiHandler;
@@ -45,6 +48,7 @@ void reset_All(void)
 {
     reset_MCSysHandler();
     reset_SvpwmHandler();
+    reset_MotorParHandler();
     reset_SensorHandler();
     reset_HFPIHandler();
     reset_HFSIHandler();
@@ -75,6 +79,15 @@ void reset_SvpwmHandler(void)
     svpwmHandler.volDQ.com1 = 0.f;svpwmHandler.volDQ.com2 = 0.f;
     svpwmHandler.ccr[0] = 0;svpwmHandler.ccr[1] = 0;svpwmHandler.ccr[2] = 0;
     svpwmHandler.sector = 0;
+}
+
+void reset_MotorParHandler(void)
+{
+    motorParHandler.Flux = Motor_Flux;
+    motorParHandler.J = Motor_J;
+    motorParHandler.Ld = Motor_Ld;
+    motorParHandler.Lq = Motor_Lq;
+    motorParHandler.polePairs = Motor_PolePairs;
 }
 
 void reset_SensorHandler(void)
@@ -214,6 +227,11 @@ void reset_IncABZHandler(void)
     incABZHandler.zIndexTimCnt = 0u;
     incABZHandler.lastEncoderCnt = 0u;
 
+    incABZHandler.abzCounterMode = eABZ_X4;
+    incABZHandler.encoderPPR_Uint = ABZ_PPR;
+    incABZHandler.encoderPPR_XX_Uint = incABZHandler.encoderPPR_Uint * (uint32_t)incABZHandler.abzCounterMode;
+    incABZHandler.eleSpeedCalcullateFacotr = 2.f * MATH_PI * (f32_t)Motor_PolePairs / ((f32_t)incABZHandler.encoderPPR_XX_Uint * speedPICHandler.ts);
+    incABZHandler.eleAngleCalculateFacotr = (f32_t)incABZHandler.encoderPPR_XX_Uint / (f32_t)Motor_PolePairs / 2.f;
     incABZHandler.realEleSpeed = 0.f;
     incABZHandler.dirLPF = 0;
     incABZHandler.motorRunSta = -1;

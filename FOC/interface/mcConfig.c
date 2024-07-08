@@ -40,16 +40,12 @@ void Hardware_SafatyTaskEvent(void)
     uint16_t index3 = (index + 2) % sizeof(frameReceiveForUSART);
     uint16_t index4 = (index + 3) % sizeof(frameReceiveForUSART);
     if(frameReceiveForUSART.receiveDat[index1] == 'S' && frameReceiveForUSART.receiveDat[index2] == ':' && frameReceiveForUSART.receiveDat[index4] == '\n'){
-        pSpPIC->target = (uint8_t)frameReceiveForUSART.receiveDat[index3] * 4.f;
+        pSpPIC->target = 2 * MATH_PI * frameReceiveForUSART.receiveDat[index3];
         frameReceiveForUSART.receiveDat[index1] = frameReceiveForUSART.receiveDat[index2] = '\0';
         frameReceiveForUSART.receiveDat[index3] = frameReceiveForUSART.receiveDat[index4] = '\0';
     }
-    index++;
-    timeBase++;
-}
 
-void Hardware_PerformanceTaskEvent(void)
-{
+    //1ms传输一次数据到上位机
     if(LL_DMA_GetDataLength(DMA1,LL_DMA_CHANNEL_1) == 0u){
         frameSendForUSART.dat0 = pSens->currentAB.com1;
         frameSendForUSART.dat1 = pSens->currentDQ.com2;
@@ -59,6 +55,14 @@ void Hardware_PerformanceTaskEvent(void)
         LL_DMA_SetDataLength(DMA1,LL_DMA_CHANNEL_1,sizeof(FrameSendForUSART));
         LL_DMA_EnableChannel(DMA1,LL_DMA_CHANNEL_1);
     }
+
+    index++;
+    timeBase++;
+}
+
+void Hardware_PerformanceTaskEvent(void)
+{
+
 }
 void Hardware_Init(void)
 {
@@ -222,10 +226,10 @@ f32_t Hardware_GetEleSpeed(void)
 
     if(pIncABZ->zeroPassABZCnt){
         if(pIncABZ->motorRunSta == 1){
-            difEncoderCnt = (int32_t)(10000u + nowEncoderCnt - lastEncoderCnt);
+            difEncoderCnt = (int32_t)(incABZHandler.encoderPPR_XX_Uint + nowEncoderCnt - lastEncoderCnt);
         }
         else if(pIncABZ->motorRunSta == 0){
-            difEncoderCnt = (int32_t)(nowEncoderCnt - lastEncoderCnt - 10000u);
+            difEncoderCnt = (int32_t)(nowEncoderCnt - lastEncoderCnt - incABZHandler.encoderPPR_XX_Uint);
         }
         pIncABZ->zeroPassABZCnt = 0u;
     }
@@ -233,13 +237,13 @@ f32_t Hardware_GetEleSpeed(void)
         difEncoderCnt = nowEncoderCnt - lastEncoderCnt;
     }
     pIncABZ->lastEncoderCnt = nowEncoderCnt;
-    pIncABZ->realEleSpeed = (f32_t)(difEncoderCnt) * 0.8f * 3.141592653589793f * 0.1f + pIncABZ->realEleSpeed * 0.9f;
+    pIncABZ->realEleSpeed = (f32_t)(difEncoderCnt) * pIncABZ->eleSpeedCalcullateFacotr * 0.1f + pIncABZ->realEleSpeed * 0.9f;
     return pIncABZ->realEleSpeed;
 }
 
 f32_t Hardware_GetRealEleAngle(void)
 {
-    int32_t realAngle = (LL_TIM_GetCounter(TIM8) % 2500);
-    return (f32_t)realAngle / 1250.f * 3.141592653589793f - 3.141592653589793f;
+    int32_t realAngle = (LL_TIM_GetCounter(TIM8) % pIncABZ->encoderPPR_Uint);
+    return (f32_t)realAngle / pIncABZ->eleAngleCalculateFacotr * MATH_PI - MATH_PI;
 }
 

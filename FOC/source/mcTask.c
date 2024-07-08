@@ -1,8 +1,8 @@
 /*
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
- * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
- * @LastEditTime: 2024-07-07 11:45:19
+ * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
+ * @LastEditTime: 2024-07-08 11:38:55
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcTask.c
  * @Description: 
  * 
@@ -320,11 +320,12 @@ void PerformanceCriticalTask(void)
                 piOut.com2 = piOut.com2 + (pSens->currentDQ.com1 * 0.001f + 0.0107f) * pSens->eleSpeed;
                 pSVP->volDQ.com1 = piOut.com1;
                 pSVP->volDQ.com2 = piOut.com2;
-                pSys->sysTimeCnt = (pSys->sysTimeCnt++ % 10);
-                if(pSys->sysTimeCnt == 0u){
+                pSys->sysTimeCnt = (pSys->sysTimeCnt % 10);
+                if(pSys->sysTimeCnt++ == 0u){
                     pSens->eleSpeed = Hardware_GetEleSpeed();
                     pIqPIC->target = SpeedPIController(pSpPIC,pSens->eleSpeed);
                 }
+
                 break;
             default:
                 break;

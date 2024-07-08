@@ -1,8 +1,8 @@
 /*
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-12 13:09:47
- * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
- * @LastEditTime: 2024-07-07 12:25:26
+ * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
+ * @LastEditTime: 2024-07-08 10:51:57
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\include\mcType.h
  * @Description: 
  * 
@@ -68,11 +68,32 @@ typedef struct{
     Components2 currentAlphaBeta;
 }SensorHandler;
 
-typedef struct mcType
+typedef struct{
+    uint8_t polePairs;
+    f32_t Ld,Lq;
+    f32_t J,Flux;
+}MC_MotorPar;
+
+typedef enum{
+    eABZ_X4 = 4,
+    eABZ_X2 = 2,
+    eABZ_X1 = 1
+}ABZCounterMode;
+
+typedef struct
 {
     bool isABZEncoderAlignment;
     bool isABZEncoderFinished;
     bool isAlignedOK;
+
+    ABZCounterMode abzCounterMode;
+
+    uint16_t encoderPPR_XX_Uint;
+    uint16_t encoderPPR_Uint;
+
+    f32_t eleSpeedCalcullateFacotr;
+    f32_t eleAngleCalculateFacotr;
+
     uint8_t zeroPassABZCnt;
     uint32_t zIndexTimCnt;
     uint32_t lastEncoderCnt;

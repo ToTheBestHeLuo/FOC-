@@ -15,6 +15,7 @@
 
 CCMRAM extern volatile MCSysHandler mcSystemHandler;
 CCMRAM extern volatile SvpwmHandler svpwmHandler;
+CCMRAM extern volatile MC_MotorPar motorParHandler;
 CCMRAM extern volatile IncABZEncoder incABZHandler;
 extern volatile HFPIHandler hfpiHandler;
 extern volatile HFSIHandler hfsiHandler;
@@ -29,6 +30,7 @@ extern volatile NonlinearFluxObsHandler NonlinearFluxHandler;
 
 CCMRAM extern volatile MCSysHandler* pSys;
 CCMRAM extern volatile SvpwmHandler* pSVP;
+CCMRAM extern volatile MC_MotorPar* pMotor;
 CCMRAM extern volatile IncABZEncoder* pIncABZ;
 CCMRAM extern volatile SensorHandler* pSens;
 extern volatile HFPIHandler* pHFPI;
@@ -44,6 +46,7 @@ extern volatile NonlinearFluxObsHandler* pNonlinearFlux;
 extern void reset_All(void);
 extern void reset_MCSysHandler(void);
 extern void reset_SvpwmHandler(void);
+extern void reset_MotorParHandler(void);
 extern void reset_IncABZHandler(void);
 extern void reset_SensorHandler(void);
 extern void reset_HFPIHandler(void);

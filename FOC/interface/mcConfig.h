@@ -16,6 +16,14 @@
 
 #define MC_SafeVoltage 36.f
 
+#define Motor_PolePairs 4u
+#define Motor_Ld 0.001f
+#define Motor_Lq 0.001f
+#define Motor_J 0.000001f
+#define Motor_Flux 0.0107f
+
+#define ABZ_PPR 2500u
+
 #define Timer_Period_ARR    8499
 #define SafetyTask_Period   0.001f
 #define PerformanceCriticalTask_Timer_Frequency 170000000.f
