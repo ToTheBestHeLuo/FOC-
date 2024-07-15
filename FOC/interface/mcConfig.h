@@ -1,8 +1,8 @@
 /*
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-23 18:44:48
- * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
- * @LastEditTime: 2024-07-07 12:36:05
+ * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
+ * @LastEditTime: 2024-07-15 12:30:10
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\interface\mcConfig.h
  * @Description: 
  * 
@@ -41,7 +41,11 @@
 
 typedef struct 
 {
-    uint8_t header[4];
+    f32_t dat0,dat1,dat2,dat3,dat4,dat5;
+}FrameForRTT;
+
+typedef struct 
+{
     f32_t dat0,dat1,dat2,dat3;
     uint8_t tail[4];
 }FrameSendForUSART;

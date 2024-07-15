@@ -15,10 +15,6 @@
 
 extern void SafetyTask(void);
 extern CCMRAM void PerformanceCriticalTask(void);
-extern CCMRAM void SectorCalModeSvpwm(volatile SvpwmHandler* svp,f32_t busVoltage);
-extern CCMRAM Components2 CurrentPIController(volatile PIC* idPIC,volatile PIC* iqPIC,volatile Components2* idqReal);
-
-extern CCMRAM f32_t SpeedPIController(volatile PIC* speedPIC,f32_t realSpeed);
 
 #endif
 

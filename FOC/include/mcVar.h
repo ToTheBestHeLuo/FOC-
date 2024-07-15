@@ -1,13 +1,14 @@
 /*
- * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
- * @Date: 2023-11-14 10:55:42
- * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
- * @LastEditTime: 2024-07-07 12:32:06
+ * @Author: ToTheBestHeLuo 2950083986@qq.com
+ * @Date: 2024-07-04 09:16:17
+ * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
+ * @LastEditTime: 2024-07-15 10:04:24
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\include\mcVar.h
  * @Description: 
  * 
- * Copyright (c) 2023 by ${git_name_email}, All Rights Reserved. 
+ * Copyright (c) 2024 by ${git_name_email}, All Rights Reserved. 
  */
+
 #ifndef _MC_VAR_H_
 #define _MC_VAR_H_
 
@@ -24,7 +25,7 @@ CCMRAM extern volatile PIC currentIdPICHandler;
 CCMRAM extern volatile PIC currentIqPICHandler;
 CCMRAM extern volatile PIC speedPICHandler;
 extern volatile NSIdentifyProcessHandler NSIdendityHandler;
-extern volatile MC_ParameterIdentify_Handler MCParameterIdentifyHandler;
+CCMRAM extern volatile MC_ParameterIdentify_Handler MCParameterIdentifyHandler;
 extern volatile NSCheckHandler NSHandler;
 extern volatile NonlinearFluxObsHandler NonlinearFluxHandler;
 
@@ -39,7 +40,7 @@ CCMRAM extern volatile PIC* pIdPIC;
 CCMRAM extern volatile PIC* pIqPIC;
 CCMRAM extern volatile PIC* pSpPIC;
 extern volatile NSIdentifyProcessHandler* pNSIdentify;
-extern volatile MC_ParameterIdentify_Handler* pParmeterIndentify;
+CCMRAM extern volatile MC_ParameterIdentify_Handler* pParmeterIndentify;
 extern volatile NSCheckHandler* pNS;
 extern volatile NonlinearFluxObsHandler* pNonlinearFlux;
 

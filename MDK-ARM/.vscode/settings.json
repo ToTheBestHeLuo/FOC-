@@ -6,6 +6,17 @@
         "mctype.h": "c",
         "stm32g4xx_it.h": "c",
         "mcmath.h": "c",
-        "mctask.h": "c"
+        "mctask.h": "c",
+        "mcparidentify.h": "c",
+        "limits": "c",
+        "memory": "c",
+        "atomic": "c",
+        "bit": "c",
+        "compare": "c",
+        "cstddef": "c",
+        "type_traits": "c",
+        "xmemory": "c",
+        "xstring": "c",
+        "xutility": "c"
     }
 }

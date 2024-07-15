@@ -4,6 +4,10 @@
 #include "arm_math.h"
 #include "mcMath.h"
 
+const uint8_t frameHeader[] = {'T','T',':'};
+const uint8_t frameEnd[] = {'E','T','!'};
+
+FrameForRTT frameForRTT;
 FrameReceiveForUSART frameReceiveForUSART;
 
 void resetFrameReceiveForUSART(void)
@@ -14,8 +18,7 @@ void resetFrameReceiveForUSART(void)
 }
 
 FrameSendForUSART frameSendForUSART = {
-    .header = {0x1,0x9,0x5,0x2},
-    .tail = {0x3,0x7,0x7,0x6}
+    .tail = {0x00,000,0x80,0x7f}
 };
 
 void Hardware_SafatyTaskEvent(void)
@@ -47,8 +50,8 @@ void Hardware_SafatyTaskEvent(void)
 
     //1ms传输一次数据到上位机
     if(LL_DMA_GetDataLength(DMA1,LL_DMA_CHANNEL_1) == 0u){
-        frameSendForUSART.dat0 = pSens->currentAB.com1;
-        frameSendForUSART.dat1 = pSens->currentDQ.com2;
+        frameSendForUSART.dat0 = pParmeterIndentify->mc_Ls;
+        frameSendForUSART.dat1 = pParmeterIndentify->mc_Rs;
         frameSendForUSART.dat2 = pSens->busAndTemp.com1;
         frameSendForUSART.dat3 = pSens->busAndTemp.com2;
         LL_DMA_DisableChannel(DMA1,LL_DMA_CHANNEL_1);
@@ -62,7 +65,26 @@ void Hardware_SafatyTaskEvent(void)
 
 void Hardware_PerformanceTaskEvent(void)
 {
-
+    // static uint16_t cnt = 0u;
+    // frameForRTT.dat0 = pParmeterIndentify->demodulation_sinCos.com1;
+    // frameForRTT.dat1 = pParmeterIndentify->demodulation_sinCos.com2;
+    // frameForRTT.dat2 = pSens->currentAB.com1;
+    // frameForRTT.dat3 = pParmeterIndentify->mc_Rs;
+    // frameForRTT.dat4 = pParmeterIndentify->mc_Ls;
+    // if(cnt == 0u){
+    //     cnt++;
+    //     SEGGER_RTT_WriteNoLock(0,frameHeader,3);
+    //     SEGGER_RTT_WriteNoLock(0,&frameForRTT,sizeof(frameForRTT));
+    // }
+    // else if(cnt == 999u){
+    //     cnt = 0u;
+    //     SEGGER_RTT_WriteNoLock(0,&frameForRTT,sizeof(frameForRTT));
+    //     SEGGER_RTT_WriteNoLock(0,frameEnd,3);
+    // }
+    // else{
+    //     cnt++;
+    //     SEGGER_RTT_WriteNoLock(0,&frameForRTT,sizeof(frameForRTT));
+    // }
 }
 void Hardware_Init(void)
 {
@@ -237,7 +259,8 @@ f32_t Hardware_GetEleSpeed(void)
         difEncoderCnt = nowEncoderCnt - lastEncoderCnt;
     }
     pIncABZ->lastEncoderCnt = nowEncoderCnt;
-    pIncABZ->realEleSpeed = (f32_t)(difEncoderCnt) * pIncABZ->eleSpeedCalcullateFacotr * 0.1f + pIncABZ->realEleSpeed * 0.9f;
+    pIncABZ->realEleSpeed = (f32_t)(difEncoderCnt) * pIncABZ->eleSpeedCalculateFacotr * 0.1f + pIncABZ->realEleSpeed * 0.9f;
+
     return pIncABZ->realEleSpeed;
 }
 

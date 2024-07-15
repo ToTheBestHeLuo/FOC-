@@ -10,6 +10,7 @@
                 "d:\\stm32cube\\stm32g431rbt6_mc_ABZ\\FOC\\include",
                 "d:\\stm32cube\\stm32g431rbt6_mc_ABZ\\FOC\\interface",
                 "d:\\stm32cube\\stm32g431rbt6_mc_ABZ\\Middlewares\\ST\\ARM\\DSP\\Inc",
+                "d:\\stm32cube\\stm32g431rbt6_mc_ABZ\\SEGGER\\RTT",
                 "C:\\Keil_v5\\ARM\\ARMCC\\include",
                 "C:\\Keil_v5\\ARM\\ARMCC\\include\\rw",
                 "d:\\stm32cube\\stm32g431rbt6_mc_ABZ\\MDK-ARM",

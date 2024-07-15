@@ -26,6 +26,7 @@
 "stm32g431rbt6_mc_abz\mcparidentify.o"
 "stm32g431rbt6_mc_abz\mcvar.o"
 "..\Middlewares\ST\ARM\DSP\Lib\arm_cortexM4lf_math.lib"
+"stm32g431rbt6_mc_abz\segger_rtt.o"
 --strict --scatter "stm32g431rbt6_mc_ABZ\stm32g431rbt6_mc_ABZ.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

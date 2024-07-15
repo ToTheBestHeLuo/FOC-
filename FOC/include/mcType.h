@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-12 13:09:47
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-08 10:51:57
+ * @LastEditTime: 2024-07-15 12:26:13
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\include\mcType.h
  * @Description: 
  * 
@@ -11,12 +11,9 @@
 #ifndef _MC_TYPE_H_
 #define _MC_TYPE_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef CCMRAM
-#define CCMRAM __attribute__((section (".ccmram")))
+// #define CCMRAM __attribute__((section (".ccmram")))
+#define CCMRAM
 #endif
 
 #include <stdbool.h>
@@ -33,6 +30,12 @@ typedef unsigned long long uint64_t;
 
 typedef float f32_t;
 typedef double f64_t;
+
+typedef enum{
+    eMethod_IncABZ = 0,
+    eMethod_AbsABZ = 1,
+    eMethod_ParIdentify = 2
+}MC_ControlMethod;
 
 typedef enum{
     eWaitSysReset = -1,
@@ -58,7 +61,6 @@ typedef struct{
 }Components2;
 
 typedef struct{
-    f32_t eleSpeed,elePos;
     f32_t adcCorrectionCoefficient;
     Components2 sinCosVal;
     Components2 busAndTemp;
@@ -91,7 +93,7 @@ typedef struct
     uint16_t encoderPPR_XX_Uint;
     uint16_t encoderPPR_Uint;
 
-    f32_t eleSpeedCalcullateFacotr;
+    f32_t eleSpeedCalculateFacotr;
     f32_t eleAngleCalculateFacotr;
 
     uint8_t zeroPassABZCnt;
@@ -114,18 +116,20 @@ typedef struct
 }SvpwmHandler;
 
 typedef enum{
-    eFOC_NSAlignment = 0,
-    eFOC_ABZAlignment = 1,
-    eFOC_MotorSet = 2,
-    eFOC_MotorRun = 3
+    eFOC_Step_1 = 0,
+    eFOC_Step_2 = 1,
+    eFOC_Step_3 = 2,
+    eFOC_Step_4 = 3
 }MC_FocStep;
 
 typedef struct 
 {
-    uint32_t sysTimeCnt;
+    uint32_t safeTaskTimeCnt;
+    uint32_t focTaskTimeCnt;
     MC_SysStateMachine sysStu;
     MC_SysErrorFlag sysError;
     uint32_t sysRunTime;
+    MC_ControlMethod controlMethod;
     MC_FocStep focStep;
 }MCSysHandler;
 

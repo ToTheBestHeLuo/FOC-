@@ -1,15 +1,20 @@
 /*
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2024-04-11 10:06:36
- * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
- * @LastEditTime: 2024-05-31 12:25:31
- * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc\FOC\source\mcParIdentify.c
+ * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
+ * @LastEditTime: 2024-07-15 13:54:41
+ * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcParIdentify.c
  * @Description: 
  * 
  * Copyright (c) 2024 by ${git_name_email}, All Rights Reserved. 
  */
 #include "../include/mcParIdentify.h"
 #include "../include/mcMath.h"
+
+CCMRAM f32_t BPF_Order_2st(f32_t in0);
+CCMRAM Components2 LPF_Order_2st(volatile Components2* in0);
+CCMRAM Components2 LPF_RMS(volatile Components2* in);
+CCMRAM void MCParIdentify_Rs_Ls(volatile MC_ParameterIdentify_Handler* parHandler,f32_t id);
 
 f32_t BPF_Order_2st(f32_t in0)
 {
@@ -62,13 +67,28 @@ Components2 LPF_RMS(volatile Components2* in)
 
 void MCParIdentify_Rs_Ls(volatile MC_ParameterIdentify_Handler* parHandler,f32_t id)
 {
-    static uint32_t timeCnt = 0u;
-
+    f32_t realPhase;
     f32_t idHF = BPF_Order_2st(id);
 
-    parHandler->demodulation_Phase = 2.f * MATH_PI * parHandler->injectFre * (f32_t)timeCnt * parHandler->ts + parHandler->demodulation_phaseCompensate;
+    parHandler->demodulation_Phase += 2.f * MATH_PI * parHandler->injectFre * parHandler->ts;
 
-    Components2 sinCos = CalculateSinCosValue(parHandler->demodulation_Phase);
+    if(parHandler->demodulation_Phase > MATH_PI){
+        parHandler->demodulation_Phase = parHandler->demodulation_Phase - 2.f * MATH_PI;
+    }
+    else if(parHandler->demodulation_Phase < -MATH_PI){
+        parHandler->demodulation_Phase = parHandler->demodulation_Phase + 2.f * MATH_PI;
+    }
+
+    realPhase = parHandler->demodulation_Phase + parHandler->demodulation_phaseCompensate;
+
+    if(realPhase > MATH_PI){
+        realPhase = realPhase - 2.f * MATH_PI;
+    }
+    else if(realPhase < -MATH_PI){
+        realPhase = realPhase + 2.f * MATH_PI;
+    }
+
+    Components2 sinCos = CalculateSinCosValue(realPhase);
     Components2 demodulation_sinCos = {parHandler->demodulation_ampCompensate * sinCos.com1,parHandler->demodulation_ampCompensate * sinCos.com2};
     parHandler->demodulation_sinCos = demodulation_sinCos;
     Components2 sigHF = {idHF * demodulation_sinCos.com1,idHF * demodulation_sinCos.com2};
@@ -91,8 +111,6 @@ void MCParIdentify_Rs_Ls(volatile MC_ParameterIdentify_Handler* parHandler,f32_t
     sinCos = CalculateSinCosValue(phase);
     parHandler->mc_Rs = z * sinCos.com2;
     parHandler->mc_Ls = -z * sinCos.com1 / 2.f / MATH_PI / parHandler->injectFre;
-
-    timeCnt++;
 }
 
 

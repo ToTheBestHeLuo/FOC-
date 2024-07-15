@@ -33,6 +33,10 @@ stm32g431rbt6_mc_abz\mcconfig.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_l
 stm32g431rbt6_mc_abz\mcconfig.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_ll_tim.h
 stm32g431rbt6_mc_abz\mcconfig.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_ll_usart.h
 stm32g431rbt6_mc_abz\mcconfig.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_ll_gpio.h
+stm32g431rbt6_mc_abz\mcconfig.o: ..\SEGGER\RTT\SEGGER_RTT.h
+stm32g431rbt6_mc_abz\mcconfig.o: ..\SEGGER\RTT\../Config/SEGGER_RTT_Conf.h
+stm32g431rbt6_mc_abz\mcconfig.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+stm32g431rbt6_mc_abz\mcconfig.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 stm32g431rbt6_mc_abz\mcconfig.o: ../Middlewares/ST/ARM/DSP/Inc/arm_math.h
 stm32g431rbt6_mc_abz\mcconfig.o: ../Drivers/CMSIS/Include/core_cm4.h
 stm32g431rbt6_mc_abz\mcconfig.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

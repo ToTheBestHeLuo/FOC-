@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-08 11:39:56
+ * @LastEditTime: 2024-07-15 12:26:44
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcVar.c
  * @Description: 
  * 
@@ -67,8 +67,10 @@ void reset_MCSysHandler(void)
     mcSystemHandler.sysError = eOKFlag;
     mcSystemHandler.sysStu = eWaitSysReset;
     mcSystemHandler.sysRunTime = 0u;
-    mcSystemHandler.focStep = eFOC_NSAlignment;
-    mcSystemHandler.sysTimeCnt = 0u;
+    mcSystemHandler.safeTaskTimeCnt = 0u;
+    mcSystemHandler.focTaskTimeCnt = 0u;
+    mcSystemHandler.controlMethod = eMethod_ParIdentify;
+    mcSystemHandler.focStep = eFOC_Step_1;
 }
 
 void reset_SvpwmHandler(void)
@@ -92,7 +94,6 @@ void reset_MotorParHandler(void)
 
 void reset_SensorHandler(void)
 {
-    sensorHandler.elePos = 0.f;sensorHandler.eleSpeed = 0.f;
     sensorHandler.adcCorrectionCoefficient = 1.f;
     sensorHandler.sinCosVal.com1 = 0.f;sensorHandler.sinCosVal.com2 = 0.f;
     sensorHandler.busAndTemp.com1 = 0.f;sensorHandler.busAndTemp.com2 = 0.f;
@@ -230,7 +231,7 @@ void reset_IncABZHandler(void)
     incABZHandler.abzCounterMode = eABZ_X4;
     incABZHandler.encoderPPR_Uint = ABZ_PPR;
     incABZHandler.encoderPPR_XX_Uint = incABZHandler.encoderPPR_Uint * (uint32_t)incABZHandler.abzCounterMode;
-    incABZHandler.eleSpeedCalcullateFacotr = 2.f * MATH_PI * (f32_t)Motor_PolePairs / ((f32_t)incABZHandler.encoderPPR_XX_Uint * speedPICHandler.ts);
+    incABZHandler.eleSpeedCalculateFacotr = 2.f * MATH_PI * (f32_t)Motor_PolePairs / ((f32_t)incABZHandler.encoderPPR_XX_Uint * speedPICHandler.ts);
     incABZHandler.eleAngleCalculateFacotr = (f32_t)incABZHandler.encoderPPR_XX_Uint / (f32_t)Motor_PolePairs / 2.f;
     incABZHandler.realEleSpeed = 0.f;
     incABZHandler.dirLPF = 0;

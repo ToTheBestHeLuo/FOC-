@@ -53,6 +53,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "SEGGER_RTT.h"
 #define __FPU_PRESENT 1U
 /* USER CODE END Includes */
 
