@@ -230,7 +230,7 @@ void DMA1_Channel2_IRQHandler(void)
 /**
   * @brief This function handles ADC1 and ADC2 global interrupt.
   */
-__attribute__((section (".ccmram"))) void ADC1_2_IRQHandler(void)
+void ADC1_2_IRQHandler(void)
 {
   /* USER CODE BEGIN ADC1_2_IRQn 0 */
   if(LL_ADC_IsActiveFlag_JEOS(ADC1) && LL_ADC_IsActiveFlag_JEOS(ADC2)){

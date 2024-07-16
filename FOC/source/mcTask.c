@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-15 14:29:26
+ * @LastEditTime: 2024-07-16 13:29:39
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcTask.c
  * @Description: 
  * 
@@ -276,7 +276,7 @@ void PerformanceCriticalTask(void)
 
 void FOC_Method_IncABZ(void)
 {
-    f32_t Ld,Lq,Flux,realEleSpeed;
+    f32_t realEleSpeed = pIncABZ->realEleSpeed;
     Components2 iAlphaBeta;
     Components2 piOut;
     switch(pSys->focStep){
@@ -291,10 +291,10 @@ void FOC_Method_IncABZ(void)
                 pSVP->volDQ.com1 = piOut.com1;
                 pSVP->volDQ.com2 = piOut.com2;
             }
-            else{pSys->focTaskTimeCnt = 0;pSys->focStep = eFOC_Step_2;}
+            else{pSys->focTaskTimeCnt = 0;pSVP->volDQ.com1 = pSVP->volDQ.com2 = 0.f;pSys->focStep = eFOC_Step_2;}
             break;
         case eFOC_Step_2:
-            if(pSys->focTaskTimeCnt++ < 5){
+            if(pSys->focTaskTimeCnt++ < 100){
                 pIncABZ->isABZEncoderAlignment = true;
                 Hardware_SetIncABZEncoderTimCnt(1250);
                 pIncABZ->lastEncoderCnt = 1250;
@@ -305,23 +305,23 @@ void FOC_Method_IncABZ(void)
         case eFOC_Step_3:
             pIdPIC->target = 0.f;
             pSys->focTaskTimeCnt = 0;
-            Ld = pMotor->Ld;
-            Lq = pMotor->Lq;
-            Flux = pMotor->Flux;
             pSys->focStep = eFOC_Step_4;
             break;
         case eFOC_Step_4:
-            realEleSpeed = Hardware_GetRealEleAngle();
-            pSens->sinCosVal = Hardware_GetSinCosVal(realEleSpeed);
+            pIncABZ->realEleAngle = Hardware_GetRealEleAngle();
+            pSens->sinCosVal = Hardware_GetSinCosVal(pIncABZ->realEleAngle);
             iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
             pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
             piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
-            piOut.com1 = piOut.com1 - pSens->currentDQ.com2 * Lq * realEleSpeed;
-            piOut.com2 = piOut.com2 + (pSens->currentDQ.com1 * Ld + Flux) * realEleSpeed;
+            piOut.com1 = piOut.com1 - pSens->currentDQ.com2 * pMotor->Lq * pIncABZ->realEleSpeed;
+            piOut.com2 = piOut.com2 + (pSens->currentDQ.com1 * pMotor->Ld + pMotor->Flux) * pIncABZ->realEleSpeed;
             pSVP->volDQ.com1 = piOut.com1;
             pSVP->volDQ.com2 = piOut.com2;
-            pSys->focTaskTimeCnt = (pSys->focTaskTimeCnt % 10);
-            if(pSys->focTaskTimeCnt++ == 0u){pIqPIC->target = SpeedPIController(pSpPIC,Hardware_GetEleSpeed());}
+            if(pSys->focTaskTimeCnt++ == 9u){
+                pSys->focTaskTimeCnt = 0u;
+                pIncABZ->realEleSpeed = Hardware_GetEleSpeed();
+                pIqPIC->target = SpeedPIController(pSpPIC,pIncABZ->realEleSpeed);
+            }
             break;
         default:
             break;
@@ -357,7 +357,7 @@ void FOC_Method_ParIdentify(void)
             iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
             pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
             if(pSys->focTaskTimeCnt == 25u){pSys->focTaskTimeCnt = 0u;polarity = -polarity;}
-            if(pSys->focTaskTimeCnt++ == 0u){pSVP->volDQ.com1 = -pParmeterIndentify->injectSigAmp * polarity + 0.f;}
+            if(pSys->focTaskTimeCnt++ == 0u){pSVP->volDQ.com1 = -pParmeterIndentify->injectSigAmp * polarity + 0.1f;}
             MCParIdentify_Rs_Ls(pParmeterIndentify,pSens->currentDQ.com1);
             break;
         default:

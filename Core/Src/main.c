@@ -159,7 +159,7 @@ int main(void)
     while(READ_BIT(FLASH->SR,FLASH_SR_BSY));
   }
   /*=========================Segger RTT=================================*/
-  SEGGER_RTT_Init();
+  // SEGGER_RTT_Init();
   /*===========================Cordic===============================*/
 
   LL_CORDIC_Config(CORDIC,LL_CORDIC_FUNCTION_SINE,LL_CORDIC_PRECISION_4CYCLES,LL_CORDIC_SCALE_0,LL_CORDIC_NBWRITE_1,LL_CORDIC_NBREAD_2,LL_CORDIC_INSIZE_32BITS,LL_CORDIC_OUTSIZE_32BITS);

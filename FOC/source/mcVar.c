@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-15 12:26:44
+ * @LastEditTime: 2024-07-16 10:16:20
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcVar.c
  * @Description: 
  * 
@@ -69,7 +69,7 @@ void reset_MCSysHandler(void)
     mcSystemHandler.sysRunTime = 0u;
     mcSystemHandler.safeTaskTimeCnt = 0u;
     mcSystemHandler.focTaskTimeCnt = 0u;
-    mcSystemHandler.controlMethod = eMethod_ParIdentify;
+    mcSystemHandler.controlMethod = eMethod_IncABZ;
     mcSystemHandler.focStep = eFOC_Step_1;
 }
 

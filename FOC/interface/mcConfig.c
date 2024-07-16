@@ -50,10 +50,8 @@ void Hardware_SafatyTaskEvent(void)
 
     //1ms传输一次数据到上位机
     if(LL_DMA_GetDataLength(DMA1,LL_DMA_CHANNEL_1) == 0u){
-        frameSendForUSART.dat0 = pParmeterIndentify->mc_Ls;
-        frameSendForUSART.dat1 = pParmeterIndentify->mc_Rs;
-        frameSendForUSART.dat2 = pSens->busAndTemp.com1;
-        frameSendForUSART.dat3 = pSens->busAndTemp.com2;
+        frameSendForUSART.dat0 = pIncABZ->realEleSpeed;
+        frameSendForUSART.dat1 = pSpPIC->target;
         LL_DMA_DisableChannel(DMA1,LL_DMA_CHANNEL_1);
         LL_DMA_SetDataLength(DMA1,LL_DMA_CHANNEL_1,sizeof(FrameSendForUSART));
         LL_DMA_EnableChannel(DMA1,LL_DMA_CHANNEL_1);
@@ -233,15 +231,17 @@ f32_t Hardware_GetTemperature(void)
 
 f32_t Hardware_GetEleSpeed(void)
 {
+    static f32_t eleSpeed = 0.f;
+
     uint32_t lastEncoderCnt = pIncABZ->lastEncoderCnt;
     uint32_t nowEncoderCnt = LL_TIM_GetCounter(TIM8);
     int32_t difEncoderCnt;
 
-    if(LL_TIM_GetDirection(TIM8) == LL_TIM_COUNTERDIRECTION_UP && pIncABZ->dirLPF++ == 4){
+    if(LL_TIM_GetDirection(TIM8) == LL_TIM_COUNTERDIRECTION_UP && pIncABZ->dirLPF++ == 10){
         pIncABZ->motorRunSta = 1;
         pIncABZ->dirLPF = 0;
     }
-    else if(LL_TIM_GetDirection(TIM8) == LL_TIM_COUNTERDIRECTION_DOWN && pIncABZ->dirLPF-- == -4){
+    else if(LL_TIM_GetDirection(TIM8) == LL_TIM_COUNTERDIRECTION_DOWN && pIncABZ->dirLPF-- == -10){
         pIncABZ->motorRunSta = 0;
         pIncABZ->dirLPF = 0;
     }
@@ -258,10 +258,30 @@ f32_t Hardware_GetEleSpeed(void)
     else{
         difEncoderCnt = nowEncoderCnt - lastEncoderCnt;
     }
-    pIncABZ->lastEncoderCnt = nowEncoderCnt;
-    pIncABZ->realEleSpeed = (f32_t)(difEncoderCnt) * pIncABZ->eleSpeedCalculateFacotr * 0.1f + pIncABZ->realEleSpeed * 0.9f;
 
-    return pIncABZ->realEleSpeed;
+    pIncABZ->lastEncoderCnt = nowEncoderCnt;
+    eleSpeed = (f32_t)(difEncoderCnt) * pIncABZ->eleSpeedCalculateFacotr * 0.1f + eleSpeed * 0.9f;
+
+    return eleSpeed;
+
+    // static uint32_t lastEncoderCnt = 0u;
+    // uint32_t nowEncoderCnt = LL_TIM_GetCounter(TIM8);
+    // int32_t difEncoderCnt;
+    // if(pIncABZ->zeroPassABZCnt){
+    //     if(LL_TIM_GetDirection(TIM8) == LL_TIM_COUNTERDIRECTION_UP){
+    //         difEncoderCnt = (int32_t)(10000u + nowEncoderCnt - lastEncoderCnt);
+    //     }
+    //     else{
+    //         difEncoderCnt = (int32_t)(nowEncoderCnt - lastEncoderCnt - 10000u);
+    //     }
+    //     pIncABZ->zeroPassABZCnt = 0u;
+    // }
+    // else{
+    //     difEncoderCnt = nowEncoderCnt - lastEncoderCnt;
+    // }
+    // lastEncoderCnt = nowEncoderCnt;
+    // eleSpeed = (f32_t)(difEncoderCnt) * 0.8f * 3.141592653589793f * 0.1f + eleSpeed * 0.9f;
+    // return eleSpeed;
 }
 
 f32_t Hardware_GetRealEleAngle(void)

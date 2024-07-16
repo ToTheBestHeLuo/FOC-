@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-12 13:09:47
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-15 12:26:13
+ * @LastEditTime: 2024-07-16 10:45:03
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\include\mcType.h
  * @Description: 
  * 
@@ -90,8 +90,8 @@ typedef struct
 
     ABZCounterMode abzCounterMode;
 
-    uint16_t encoderPPR_XX_Uint;
-    uint16_t encoderPPR_Uint;
+    uint32_t encoderPPR_XX_Uint;
+    uint32_t encoderPPR_Uint;
 
     f32_t eleSpeedCalculateFacotr;
     f32_t eleAngleCalculateFacotr;
@@ -100,7 +100,7 @@ typedef struct
     uint32_t zIndexTimCnt;
     uint32_t lastEncoderCnt;
 
-    f32_t realEleSpeed;
+    f32_t realEleSpeed,realEleAngle;
     int8_t dirLPF;
     int8_t motorRunSta;
 }IncABZEncoder;

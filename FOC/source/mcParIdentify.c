@@ -108,6 +108,13 @@ void MCParIdentify_Rs_Ls(volatile MC_ParameterIdentify_Handler* parHandler,f32_t
 
     phase = -phase;
 
+    if(phase > MATH_PI){
+        phase = phase - 2.f * MATH_PI;
+    }
+    else if(phase < -MATH_PI){
+        phase = phase + 2.f * MATH_PI;
+    }
+
     sinCos = CalculateSinCosValue(phase);
     parHandler->mc_Rs = z * sinCos.com2;
     parHandler->mc_Ls = -z * sinCos.com1 / 2.f / MATH_PI / parHandler->injectFre;

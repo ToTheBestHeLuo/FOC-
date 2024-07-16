@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-23 18:44:48
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-15 12:30:10
+ * @LastEditTime: 2024-07-16 13:31:52
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\interface\mcConfig.h
  * @Description: 
  * 
@@ -29,14 +29,14 @@
 #define PerformanceCriticalTask_Timer_Frequency 170000000.f
 #define PerformanceCriticalTask_Period ((float)Timer_Period_ARR / PerformanceCriticalTask_Timer_Frequency * 2.f)
 
-#define PIC_Current_Out_Limit 10.f
+#define PIC_Current_Out_Limit 14.f
 #define PIC_Current_Kp 2.64f
 #define PIC_Current_Ki 12.86f
 #define PIC_Current_Int_Limit (PIC_Current_Out_Limit / PIC_Current_Ki)
 
 #define PIC_Speed_Out_Limit 10.0f
-#define PIC_Speed_Kp 0.05f
-#define PIC_Speed_Ki 0.25f
+#define PIC_Speed_Kp 0.01f
+#define PIC_Speed_Ki 0.10f
 #define PIC_Speed_Int_Limit (PIC_Speed_Out_Limit / PIC_Speed_Ki)
 
 typedef struct 
@@ -46,7 +46,7 @@ typedef struct
 
 typedef struct 
 {
-    f32_t dat0,dat1,dat2,dat3;
+    f32_t dat0,dat1;
     uint8_t tail[4];
 }FrameSendForUSART;
 
