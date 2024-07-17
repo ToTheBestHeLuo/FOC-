@@ -606,16 +606,6 @@
               <FilePath>..\FOC\interface\mcConfig.c</FilePath>
             </File>
             <File>
-              <FileName>mcFluxObs.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\FOC\source\mcFluxObs.c</FilePath>
-            </File>
-            <File>
-              <FileName>mcHFI.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\FOC\source\mcHFI.c</FilePath>
-            </File>
-            <File>
               <FileName>mcMath.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\FOC\source\mcMath.c</FilePath>
@@ -634,6 +624,16 @@
               <FileName>mcVar.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\FOC\source\mcVar.c</FilePath>
+            </File>
+            <File>
+              <FileName>mcHVSensorless.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FOC\source\mcHVSensorless.c</FilePath>
+            </File>
+            <File>
+              <FileName>mcLVSensorless.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FOC\source\mcLVSensorless.c</FilePath>
             </File>
           </Files>
         </Group>

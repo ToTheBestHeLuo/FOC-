@@ -50,8 +50,8 @@ void Hardware_SafatyTaskEvent(void)
 
     //1ms传输一次数据到上位机
     if(LL_DMA_GetDataLength(DMA1,LL_DMA_CHANNEL_1) == 0u){
-        frameSendForUSART.dat0 = pIncABZ->realEleSpeed;
-        frameSendForUSART.dat1 = pSpPIC->target;
+        frameSendForUSART.dat0 = pSpPIC->target;
+        frameSendForUSART.dat1 = pIncABZ->realEleSpeed;
         LL_DMA_DisableChannel(DMA1,LL_DMA_CHANNEL_1);
         LL_DMA_SetDataLength(DMA1,LL_DMA_CHANNEL_1,sizeof(FrameSendForUSART));
         LL_DMA_EnableChannel(DMA1,LL_DMA_CHANNEL_1);
@@ -64,8 +64,8 @@ void Hardware_SafatyTaskEvent(void)
 void Hardware_PerformanceTaskEvent(void)
 {
     // static uint16_t cnt = 0u;
-    // frameForRTT.dat0 = pParmeterIndentify->demodulation_sinCos.com1;
-    // frameForRTT.dat1 = pParmeterIndentify->demodulation_sinCos.com2;
+    // frameForRTT.dat0 = pSens->currentDQ.com1;
+    // frameForRTT.dat1 = pSens->currentDQ.com2;
     // frameForRTT.dat2 = pSens->currentAB.com1;
     // frameForRTT.dat3 = pParmeterIndentify->mc_Rs;
     // frameForRTT.dat4 = pParmeterIndentify->mc_Ls;

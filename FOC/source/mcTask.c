@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-16 13:29:39
+ * @LastEditTime: 2024-07-16 15:44:02
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcTask.c
  * @Description: 
  * 
@@ -13,8 +13,8 @@
 #include "../include/mcMath.h"
 #include "../include/mcVar.h"
 #include "../include/mcParIdentify.h"
-#include "../include/mcHFI.h"
-#include "../include/mcFluxObs.h"
+#include "../include/mcHVSensorless.h"
+#include "../include/mcLVSensorless.h"
 
 #define sqrt3 1.732050807568877f
 
@@ -345,6 +345,8 @@ void FOC_Method_ParIdentify(void)
                 pSVP->volDQ.com2 = piOut.com2;
             }
             else{
+                pSVP->volDQ.com1 = 0.f;
+                pSVP->volDQ.com2 = 0.f;
                 reset_CurrentPICHandler();
                 pSys->focTaskTimeCnt = 0;
                 pSys->focStep = eFOC_Step_2;
@@ -357,7 +359,7 @@ void FOC_Method_ParIdentify(void)
             iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
             pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
             if(pSys->focTaskTimeCnt == 25u){pSys->focTaskTimeCnt = 0u;polarity = -polarity;}
-            if(pSys->focTaskTimeCnt++ == 0u){pSVP->volDQ.com1 = -pParmeterIndentify->injectSigAmp * polarity + 0.1f;}
+            if(pSys->focTaskTimeCnt++ == 0u){pSVP->volDQ.com1 = -pParmeterIndentify->injectSigAmp * polarity + 0.2f;}
             MCParIdentify_Rs_Ls(pParmeterIndentify,pSens->currentDQ.com1);
             break;
         default:

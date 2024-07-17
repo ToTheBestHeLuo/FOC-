@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-23 18:44:48
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-16 13:31:52
+ * @LastEditTime: 2024-07-16 15:56:00
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\interface\mcConfig.h
  * @Description: 
  * 
@@ -29,7 +29,7 @@
 #define PerformanceCriticalTask_Timer_Frequency 170000000.f
 #define PerformanceCriticalTask_Period ((float)Timer_Period_ARR / PerformanceCriticalTask_Timer_Frequency * 2.f)
 
-#define PIC_Current_Out_Limit 14.f
+#define PIC_Current_Out_Limit 13.f
 #define PIC_Current_Kp 2.64f
 #define PIC_Current_Ki 12.86f
 #define PIC_Current_Int_Limit (PIC_Current_Out_Limit / PIC_Current_Ki)

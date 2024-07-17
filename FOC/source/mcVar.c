@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-16 10:16:20
+ * @LastEditTime: 2024-07-16 15:35:26
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcVar.c
  * @Description: 
  * 
@@ -175,12 +175,12 @@ void reset_NSIdentifyHandler(void)
 
 void reset_ParmeterHandler(void)
 {
-    MCParameterIdentifyHandler.injectSigAmp = 0.1f;
+    MCParameterIdentifyHandler.injectSigAmp = 1.f;
     MCParameterIdentifyHandler.injectFre = 200.f;
     MCParameterIdentifyHandler.ts = 0.0001f;
     MCParameterIdentifyHandler.mc_Ls = 0.f;
     MCParameterIdentifyHandler.mc_Rs = 0.f;
-    MCParameterIdentifyHandler.demodulation_phaseCompensate = -0.058293997016611f * 4.8f;
+    MCParameterIdentifyHandler.demodulation_phaseCompensate = -0.058293997016611f * 7.f;
     MCParameterIdentifyHandler.demodulation_ampCompensate = 1.f;
 }
 
