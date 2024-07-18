@@ -1,4 +1,13 @@
-
+/*
+ * @Author: ToTheBestHeLuo 2950083986@qq.com
+ * @Date: 2024-07-17 11:08:21
+ * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
+ * @LastEditTime: 2024-07-17 15:00:15
+ * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcLVSensorless.c
+ * @Description: 
+ * 
+ * Copyright (c) 2024 by ${git_name_email}, All Rights Reserved. 
+ */
 #include "../include/mcLVSensorless.h"
 #include "../include/mcMath.h"
 #include "../interface/mcConfig.h"

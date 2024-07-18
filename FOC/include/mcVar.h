@@ -14,33 +14,33 @@
 
 #include "mcType.h"
 
-CCMRAM extern volatile MCSysHandler mcSystemHandler;
-CCMRAM extern volatile SvpwmHandler svpwmHandler;
-CCMRAM extern volatile MC_MotorPar motorParHandler;
-CCMRAM extern volatile IncABZEncoder incABZHandler;
+extern volatile MCSysHandler mcSystemHandler;
+extern volatile SvpwmHandler svpwmHandler;
+extern volatile MC_MotorPar motorParHandler;
+extern volatile IncABZEncoder incABZHandler;
 extern volatile HFPIHandler hfpiHandler;
 extern volatile HFSIHandler hfsiHandler;
-CCMRAM extern volatile SensorHandler sensorHandler;
-CCMRAM extern volatile PIC currentIdPICHandler;
-CCMRAM extern volatile PIC currentIqPICHandler;
-CCMRAM extern volatile PIC speedPICHandler;
+extern volatile SensorHandler sensorHandler;
+extern volatile PIC currentIdPICHandler;
+extern volatile PIC currentIqPICHandler;
+extern volatile PIC speedPICHandler;
 extern volatile NSIdentifyProcessHandler NSIdendityHandler;
-CCMRAM extern volatile MC_ParameterIdentify_Handler MCParameterIdentifyHandler;
+extern volatile MC_ParameterIdentify_Handler MCParameterIdentifyHandler;
 extern volatile NSCheckHandler NSHandler;
 extern volatile NonlinearFluxObsHandler NonlinearFluxHandler;
 
-CCMRAM extern volatile MCSysHandler* pSys;
-CCMRAM extern volatile SvpwmHandler* pSVP;
-CCMRAM extern volatile MC_MotorPar* pMotor;
-CCMRAM extern volatile IncABZEncoder* pIncABZ;
-CCMRAM extern volatile SensorHandler* pSens;
+extern volatile MCSysHandler* pSys;
+extern volatile SvpwmHandler* pSVP;
+extern volatile MC_MotorPar* pMotor;
+extern volatile IncABZEncoder* pIncABZ;
+extern volatile SensorHandler* pSens;
 extern volatile HFPIHandler* pHFPI;
 extern volatile HFSIHandler* pHFSI;
-CCMRAM extern volatile PIC* pIdPIC;
-CCMRAM extern volatile PIC* pIqPIC;
-CCMRAM extern volatile PIC* pSpPIC;
+extern volatile PIC* pIdPIC;
+extern volatile PIC* pIqPIC;
+extern volatile PIC* pSpPIC;
 extern volatile NSIdentifyProcessHandler* pNSIdentify;
-CCMRAM extern volatile MC_ParameterIdentify_Handler* pParmeterIndentify;
+extern volatile MC_ParameterIdentify_Handler* pParmeterIndentify;
 extern volatile NSCheckHandler* pNS;
 extern volatile NonlinearFluxObsHandler* pNonlinearFlux;
 

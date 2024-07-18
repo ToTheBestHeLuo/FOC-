@@ -1,5 +1,14 @@
+/*
+ * @Author: ToTheBestHeLuo 2950083986@qq.com
+ * @Date: 2024-07-04 09:16:17
+ * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
+ * @LastEditTime: 2024-07-18 11:04:57
+ * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\interface\mcConfig.c
+ * @Description: 
+ * 
+ * Copyright (c) 2024 by ${git_name_email}, All Rights Reserved. 
+ */
 #include "mcConfig.h"
-
 #include "main.h"
 #include "arm_math.h"
 #include "mcMath.h"
@@ -212,14 +221,6 @@ f32_t Hardware_GetBusVoltage(void)
     pSens->adcCorrectionCoefficient = 1.21142578125f / ((float)LL_ADC_REG_ReadConversionData12(ADC1) / 65535.f * 3.3f);
     return bus;
 }
-uint32_t Hardware_GetIncABZEncoderTimCnt(void)
-{
-    return LL_TIM_GetCounter(TIM8);
-}
-void Hardware_SetIncABZEncoderTimCnt(int32_t cnt)
-{
-    LL_TIM_SetCounter(TIM8,cnt);   
-}
 
 f32_t Hardware_GetTemperature(void)
 {
@@ -229,64 +230,18 @@ f32_t Hardware_GetTemperature(void)
     return (float)dat * 0.125f;
 }
 
-f32_t Hardware_GetEleSpeed(void)
+void Hardwarre_SetABZCounter(uint32_t cnt)
 {
-    static f32_t eleSpeed = 0.f;
-
-    uint32_t lastEncoderCnt = pIncABZ->lastEncoderCnt;
-    uint32_t nowEncoderCnt = LL_TIM_GetCounter(TIM8);
-    int32_t difEncoderCnt;
-
-    if(LL_TIM_GetDirection(TIM8) == LL_TIM_COUNTERDIRECTION_UP && pIncABZ->dirLPF++ == 10){
-        pIncABZ->motorRunSta = 1;
-        pIncABZ->dirLPF = 0;
-    }
-    else if(LL_TIM_GetDirection(TIM8) == LL_TIM_COUNTERDIRECTION_DOWN && pIncABZ->dirLPF-- == -10){
-        pIncABZ->motorRunSta = 0;
-        pIncABZ->dirLPF = 0;
-    }
-
-    if(pIncABZ->zeroPassABZCnt){
-        if(pIncABZ->motorRunSta == 1){
-            difEncoderCnt = (int32_t)(incABZHandler.encoderPPR_XX_Uint + nowEncoderCnt - lastEncoderCnt);
-        }
-        else if(pIncABZ->motorRunSta == 0){
-            difEncoderCnt = (int32_t)(nowEncoderCnt - lastEncoderCnt - incABZHandler.encoderPPR_XX_Uint);
-        }
-        pIncABZ->zeroPassABZCnt = 0u;
-    }
-    else{
-        difEncoderCnt = nowEncoderCnt - lastEncoderCnt;
-    }
-
-    pIncABZ->lastEncoderCnt = nowEncoderCnt;
-    eleSpeed = (f32_t)(difEncoderCnt) * pIncABZ->eleSpeedCalculateFacotr * 0.1f + eleSpeed * 0.9f;
-
-    return eleSpeed;
-
-    // static uint32_t lastEncoderCnt = 0u;
-    // uint32_t nowEncoderCnt = LL_TIM_GetCounter(TIM8);
-    // int32_t difEncoderCnt;
-    // if(pIncABZ->zeroPassABZCnt){
-    //     if(LL_TIM_GetDirection(TIM8) == LL_TIM_COUNTERDIRECTION_UP){
-    //         difEncoderCnt = (int32_t)(10000u + nowEncoderCnt - lastEncoderCnt);
-    //     }
-    //     else{
-    //         difEncoderCnt = (int32_t)(nowEncoderCnt - lastEncoderCnt - 10000u);
-    //     }
-    //     pIncABZ->zeroPassABZCnt = 0u;
-    // }
-    // else{
-    //     difEncoderCnt = nowEncoderCnt - lastEncoderCnt;
-    // }
-    // lastEncoderCnt = nowEncoderCnt;
-    // eleSpeed = (f32_t)(difEncoderCnt) * 0.8f * 3.141592653589793f * 0.1f + eleSpeed * 0.9f;
-    // return eleSpeed;
+    LL_TIM_SetCounter(TIM8,cnt);
 }
 
-f32_t Hardware_GetRealEleAngle(void)
+uint32_t Hardware_GetABZCounter(void)
 {
-    int32_t realAngle = (LL_TIM_GetCounter(TIM8) % pIncABZ->encoderPPR_Uint);
-    return (f32_t)realAngle / pIncABZ->eleAngleCalculateFacotr * MATH_PI - MATH_PI;
+    return LL_TIM_GetCounter(TIM8);
+}
+
+uint32_t Hardware_GetABZCounterDir(void)
+{   
+    return (LL_TIM_GetDirection(TIM8) == LL_TIM_COUNTERDIRECTION_UP) ? 1u : 0u;
 }
 

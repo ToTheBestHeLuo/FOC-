@@ -10,11 +10,13 @@
  */
 #include "../include/mcParIdentify.h"
 #include "../include/mcMath.h"
+#include "../include/mcVar.h"
+#include "../interface/mcConfig.h"
 
-CCMRAM f32_t BPF_Order_2st(f32_t in0);
-CCMRAM Components2 LPF_Order_2st(volatile Components2* in0);
-CCMRAM Components2 LPF_RMS(volatile Components2* in);
-CCMRAM void MCParIdentify_Rs_Ls(volatile MC_ParameterIdentify_Handler* parHandler,f32_t id);
+f32_t BPF_Order_2st(f32_t in0);
+Components2 LPF_Order_2st(volatile Components2* in0);
+Components2 LPF_RMS(volatile Components2* in);
+void MCParIdentify_Rs_Ls(volatile MC_ParameterIdentify_Handler* parHandler,f32_t id);
 
 f32_t BPF_Order_2st(f32_t in0)
 {

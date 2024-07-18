@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-16 15:44:02
+ * @LastEditTime: 2024-07-18 11:22:21
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcTask.c
  * @Description: 
  * 
@@ -15,14 +15,16 @@
 #include "../include/mcParIdentify.h"
 #include "../include/mcHVSensorless.h"
 #include "../include/mcLVSensorless.h"
+#include "../include/mcSensor.h"
 
 #define sqrt3 1.732050807568877f
 
-CCMRAM void SectorCalModeSvpwm(volatile SvpwmHandler* svp);
-CCMRAM Components2 CurrentPIController(volatile PIC* idPIC,volatile PIC* iqPIC,volatile Components2* idqReal);
-CCMRAM f32_t SpeedPIController(volatile PIC* speedPIC,f32_t realSpeed);
-CCMRAM void FOC_Method_IncABZ(void);
-CCMRAM void FOC_Method_ParIdentify(void);
+void SectorCalModeSvpwm(volatile SvpwmHandler* svp);
+Components2 CurrentPIController(volatile PIC* idPIC,volatile PIC* iqPIC,volatile Components2* idqReal);
+f32_t SpeedPIController(volatile PIC* speedPIC,f32_t realSpeed);
+void FOC_Method_IncABZ(void);
+void FOC_Method_ParIdentify(void);
+void FOC_Method_NonlinearFlux(void);
 
 void SectorVoltageLimit(volatile SvpwmHandler* svp,Components2* svpAlphaBeta)
 {
@@ -177,7 +179,7 @@ void SafetyTask(void)
         if(!Hardware_MCStartOrStop()){pSys->sysStu = eWaitSysReset;}
         pSens->busAndTemp.com1 = Hardware_GetBusVoltage() * 0.99f + pSens->busAndTemp.com1 * 0.01f;
         if(pSens->busAndTemp.com1 < MC_SafeVoltage * 0.85f){
-            if(pSys->safeTaskTimeCnt++ > 50u){
+            if(pSys->safeTaskTimeCnt++ > 140u){
                 Hardware_StopPWM();
                 pSys->safeTaskTimeCnt = 0;
                 pSys->sysError = eUnderVoltageError;
@@ -185,7 +187,7 @@ void SafetyTask(void)
             }
         }
         else if(pSens->busAndTemp.com1 > MC_SafeVoltage * 1.15f){
-            if(pSys->safeTaskTimeCnt++ > 50u){
+            if(pSys->safeTaskTimeCnt++ > 140u){
                 Hardware_StopPWM();
                 pSys->safeTaskTimeCnt = 0;
                 pSys->sysError = eOverVoltageError;
@@ -264,6 +266,9 @@ void PerformanceCriticalTask(void)
             case eMethod_ParIdentify:
                 FOC_Method_ParIdentify();
                 break;
+            case eMethod_NonlinearFlux:
+                FOC_Method_NonlinearFlux();
+                break;
             default:
                 break;
         }
@@ -276,9 +281,11 @@ void PerformanceCriticalTask(void)
 
 void FOC_Method_IncABZ(void)
 {
-    f32_t realEleSpeed = pIncABZ->realEleSpeed;
     Components2 iAlphaBeta;
     Components2 piOut;
+
+    f32_t realSpeed = pIncABZ->realEleSpeed;
+
     switch(pSys->focStep){
         case eFOC_Step_1:
             if(pSys->focTaskTimeCnt++ < 2000){
@@ -290,36 +297,34 @@ void FOC_Method_IncABZ(void)
                 piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
                 pSVP->volDQ.com1 = piOut.com1;
                 pSVP->volDQ.com2 = piOut.com2;
+                Hardwarre_SetABZCounter(1250);
             }
-            else{pSys->focTaskTimeCnt = 0;pSVP->volDQ.com1 = pSVP->volDQ.com2 = 0.f;pSys->focStep = eFOC_Step_2;}
-            break;
-        case eFOC_Step_2:
-            if(pSys->focTaskTimeCnt++ < 100){
+            else{
+                pSys->focTaskTimeCnt = 0;
+                pIdPIC->target = 0.f;
+                pSVP->volDQ.com1 = pSVP->volDQ.com2 = 0.f;
                 pIncABZ->isABZEncoderAlignment = true;
-                Hardware_SetIncABZEncoderTimCnt(1250);
                 pIncABZ->lastEncoderCnt = 1250;
                 reset_CurrentPICHandler();
+                pSys->focStep = eFOC_Step_2;
             }
-            else{pSys->focTaskTimeCnt = 0;pSys->focStep = eFOC_Step_3;}
+            break;
+        case eFOC_Step_2:
+            if(pSys->focTaskTimeCnt++ > 100){pSys->focTaskTimeCnt = 0;pSys->focStep = eFOC_Step_3;}
             break;
         case eFOC_Step_3:
-            pIdPIC->target = 0.f;
-            pSys->focTaskTimeCnt = 0;
-            pSys->focStep = eFOC_Step_4;
-            break;
-        case eFOC_Step_4:
-            pIncABZ->realEleAngle = Hardware_GetRealEleAngle();
+            pIncABZ->realEleAngle = IncAbzCalculateRealEleAngle();
             pSens->sinCosVal = Hardware_GetSinCosVal(pIncABZ->realEleAngle);
             iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
             pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
             piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
-            piOut.com1 = piOut.com1 - pSens->currentDQ.com2 * pMotor->Lq * pIncABZ->realEleSpeed;
-            piOut.com2 = piOut.com2 + (pSens->currentDQ.com1 * pMotor->Ld + pMotor->Flux) * pIncABZ->realEleSpeed;
+            piOut.com1 = piOut.com1 - pSens->currentDQ.com2 * pMotor->Lq * realSpeed;
+            piOut.com2 = piOut.com2 + (pSens->currentDQ.com1 * pMotor->Ld + pMotor->Flux) * realSpeed;
             pSVP->volDQ.com1 = piOut.com1;
             pSVP->volDQ.com2 = piOut.com2;
             if(pSys->focTaskTimeCnt++ == 9u){
                 pSys->focTaskTimeCnt = 0u;
-                pIncABZ->realEleSpeed = Hardware_GetEleSpeed();
+                pIncABZ->realEleSpeed = IncAbzCalculateRealEleSpeed();
                 pIqPIC->target = SpeedPIController(pSpPIC,pIncABZ->realEleSpeed);
             }
             break;
@@ -361,6 +366,37 @@ void FOC_Method_ParIdentify(void)
             if(pSys->focTaskTimeCnt == 25u){pSys->focTaskTimeCnt = 0u;polarity = -polarity;}
             if(pSys->focTaskTimeCnt++ == 0u){pSVP->volDQ.com1 = -pParmeterIndentify->injectSigAmp * polarity + 0.2f;}
             MCParIdentify_Rs_Ls(pParmeterIndentify,pSens->currentDQ.com1);
+            break;
+        default:
+            break;
+    }
+}
+
+void FOC_Method_NonlinearFlux(void)
+{
+    f32_t realEleSpeed;
+    Components2 iAlphaBeta,piOut,uAlphaBeta;
+    switch(pSys->focStep){
+        case eFOC_Step_1:
+            pIdPIC->target = 0.5f;
+            pSys->focStep = eFOC_Step_2;
+            break;
+        case eFOC_Step_2:
+            if(pSys->focTaskTimeCnt++ == 9u){
+                pSys->focTaskTimeCnt = 0u;
+                realEleSpeed = pNonlinearFlux->est_eleSpeed;
+                pIqPIC->target = SpeedPIController(pSpPIC,realEleSpeed);
+            }
+            pSens->sinCosVal = Hardware_GetSinCosVal(pNonlinearFlux->est_eleAngle);
+            iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
+            pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
+            piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+            piOut.com1 = piOut.com1 - pSens->currentDQ.com2 * pMotor->Lq * pNonlinearFlux->est_eleSpeedLPF;
+            piOut.com2 = piOut.com2 + (pSens->currentDQ.com1 * pMotor->Ld + pMotor->Flux) * pNonlinearFlux->est_eleSpeedLPF;
+            pSVP->volDQ.com1 = piOut.com1;
+            pSVP->volDQ.com2 = piOut.com2;
+            uAlphaBeta = Dq_AlphaBeta_Trans(&piOut,&pSens->sinCosVal);
+            NonlinearFluxObsProcess(pNonlinearFlux,pSpPIC,&uAlphaBeta,&iAlphaBeta);
             break;
         default:
             break;

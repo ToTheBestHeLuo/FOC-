@@ -261,10 +261,10 @@ void EXTI9_5_IRQHandler(void)
     if(pIncABZ->isABZEncoderAlignment){
       if(!pIncABZ->isABZEncoderFinished){
         pIncABZ->isABZEncoderFinished = true;
-        pIncABZ->zIndexTimCnt = Hardware_GetIncABZEncoderTimCnt();
+        pIncABZ->zIndexTimCnt = Hardware_GetABZCounter();
       }
       else{
-        LL_TIM_SetCounter(TIM8,pIncABZ->zIndexTimCnt);
+        Hardwarre_SetABZCounter(pIncABZ->zIndexTimCnt);
       }
     }
     /* USER CODE END LL_EXTI_LINE_6 */

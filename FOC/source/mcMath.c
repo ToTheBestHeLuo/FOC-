@@ -1,12 +1,12 @@
 /*
- * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
- * @Date: 2023-11-12 13:29:06
- * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
- * @LastEditTime: 2024-04-11 13:44:06
- * @FilePath: \MDK-ARMd:\stm32cube\stm32g431_mc_withABZ\FOC\source\mcMath.c
+ * @Author: ToTheBestHeLuo 2950083986@qq.com
+ * @Date: 2024-07-04 09:16:17
+ * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
+ * @LastEditTime: 2024-07-17 15:00:51
+ * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcMath.c
  * @Description: 
  * 
- * Copyright (c) 2023 by ${git_name_email}, All Rights Reserved. 
+ * Copyright (c) 2024 by ${git_name_email}, All Rights Reserved. 
  */
 #include "../include/mcType.h"
 #include "../interface/mcConfig.h"

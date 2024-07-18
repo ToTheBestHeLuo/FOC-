@@ -8,3 +8,4 @@ stm32g431rbt6_mc_abz\mctask.o: ..\FOC\source\../include/mcMath.h
 stm32g431rbt6_mc_abz\mctask.o: ..\FOC\source\../include/mcParIdentify.h
 stm32g431rbt6_mc_abz\mctask.o: ..\FOC\source\../include/mcHVSensorless.h
 stm32g431rbt6_mc_abz\mctask.o: ..\FOC\source\../include/mcLVSensorless.h
+stm32g431rbt6_mc_abz\mctask.o: ..\FOC\source\../include/mcSensor.h

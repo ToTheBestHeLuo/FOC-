@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-16 15:35:26
+ * @LastEditTime: 2024-07-18 09:59:27
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcVar.c
  * @Description: 
  * 

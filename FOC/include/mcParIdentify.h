@@ -2,7 +2,7 @@
  * @Author: ToTheBestHeLuo 2950083986@qq.com
  * @Date: 2024-07-04 09:16:17
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-15 10:02:14
+ * @LastEditTime: 2024-07-17 14:56:25
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\include\mcParIdentify.h
  * @Description: 
  * 
@@ -13,7 +13,7 @@
 
 #include "mcVar.h"
 
-extern CCMRAM void MCParIdentify_Rs_Ls(volatile MC_ParameterIdentify_Handler* parHandler,f32_t id);
+extern void MCParIdentify_Rs_Ls(volatile MC_ParameterIdentify_Handler* parHandler,f32_t id);
 
 #endif
 

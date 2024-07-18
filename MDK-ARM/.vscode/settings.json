@@ -17,6 +17,9 @@
         "type_traits": "c",
         "xmemory": "c",
         "xstring": "c",
-        "xutility": "c"
+        "xutility": "c",
+        "mcsensor.h": "c",
+        "mclvsensorless.h": "c",
+        "mchvsensorless.h": "c"
     }
 }

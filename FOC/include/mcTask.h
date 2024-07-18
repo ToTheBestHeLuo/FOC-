@@ -14,7 +14,7 @@
 #include "mcVar.h"
 
 extern void SafetyTask(void);
-extern CCMRAM void PerformanceCriticalTask(void);
+extern void PerformanceCriticalTask(void);
 
 #endif
 

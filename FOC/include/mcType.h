@@ -11,10 +11,9 @@
 #ifndef _MC_TYPE_H_
 #define _MC_TYPE_H_
 
-#ifndef CCMRAM
+// #ifndef CCMRAM
 // #define CCMRAM __attribute__((section (".ccmram")))
-#define CCMRAM
-#endif
+// #endif
 
 #include <stdbool.h>
 
@@ -34,7 +33,8 @@ typedef double f64_t;
 typedef enum{
     eMethod_IncABZ = 0,
     eMethod_AbsABZ = 1,
-    eMethod_ParIdentify = 2
+    eMethod_ParIdentify = 2,
+    eMethod_NonlinearFlux = 3
 }MC_ControlMethod;
 
 typedef enum{
