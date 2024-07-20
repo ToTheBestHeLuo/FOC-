@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-18 11:22:21
+ * @LastEditTime: 2024-07-20 10:56:33
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcTask.c
  * @Description: 
  * 
@@ -22,9 +22,11 @@
 void SectorCalModeSvpwm(volatile SvpwmHandler* svp);
 Components2 CurrentPIController(volatile PIC* idPIC,volatile PIC* iqPIC,volatile Components2* idqReal);
 f32_t SpeedPIController(volatile PIC* speedPIC,f32_t realSpeed);
+
 void FOC_Method_IncABZ(void);
 void FOC_Method_ParIdentify(void);
 void FOC_Method_NonlinearFlux(void);
+void FOC_Method_IF_Luenberger(void);
 
 void SectorVoltageLimit(volatile SvpwmHandler* svp,Components2* svpAlphaBeta)
 {
@@ -186,7 +188,7 @@ void SafetyTask(void)
                 pSys->sysStu = eWaitSysReset;
             }
         }
-        else if(pSens->busAndTemp.com1 > MC_SafeVoltage * 1.15f){
+        else if(pSens->busAndTemp.com1 > MC_SafeVoltage * 1.5f){
             if(pSys->safeTaskTimeCnt++ > 140u){
                 Hardware_StopPWM();
                 pSys->safeTaskTimeCnt = 0;
@@ -202,10 +204,12 @@ void SafetyTask(void)
 
 f32_t SpeedPIController(volatile PIC* speedPIC,f32_t realSpeed)
 {
+    f32_t ts = pSys->lowSpeedClock;
+
     f32_t out;
     f32_t err = speedPIC->target - realSpeed;
 
-    speedPIC->errInt += err * speedPIC->ts;
+    speedPIC->errInt += err * ts;
 
     if(speedPIC->errInt > PIC_Speed_Int_Limit) speedPIC->errInt = PIC_Speed_Int_Limit;
     else if(speedPIC->errInt < -PIC_Speed_Int_Limit) speedPIC->errInt = -PIC_Speed_Int_Limit;
@@ -222,9 +226,11 @@ f32_t SpeedPIController(volatile PIC* speedPIC,f32_t realSpeed)
 
 Components2 CurrentPIController(volatile PIC* idPIC,volatile PIC* iqPIC,volatile Components2* idqReal)
 {
+    f32_t ts = pSys->highSpeedClock;
+
     Components2 out;
     f32_t err = idPIC->target - idqReal->com1;
-    idPIC->errInt += err * idPIC->ts;
+    idPIC->errInt += err * ts;
 
     if(idPIC->errInt > PIC_Current_Int_Limit) idPIC->errInt = PIC_Current_Int_Limit;
     else if(idPIC->errInt < -PIC_Current_Int_Limit) idPIC->errInt = -PIC_Current_Int_Limit;
@@ -235,7 +241,7 @@ Components2 CurrentPIController(volatile PIC* idPIC,volatile PIC* iqPIC,volatile
     else if(out.com1 < -PIC_Current_Out_Limit) out.com1 = -PIC_Current_Out_Limit;
 
     err = iqPIC->target - idqReal->com2;
-    iqPIC->errInt += err * iqPIC->ts;
+    iqPIC->errInt += err * ts;
 
     if(iqPIC->errInt > PIC_Current_Int_Limit) iqPIC->errInt = PIC_Current_Int_Limit;
     else if(iqPIC->errInt < -PIC_Current_Int_Limit) iqPIC->errInt = -PIC_Current_Int_Limit;
@@ -268,6 +274,9 @@ void PerformanceCriticalTask(void)
                 break;
             case eMethod_NonlinearFlux:
                 FOC_Method_NonlinearFlux();
+                break;
+            case eMethod_IF_Luenberger:
+                FOC_Method_IF_Luenberger();
                 break;
             default:
                 break;
@@ -310,10 +319,10 @@ void FOC_Method_IncABZ(void)
             }
             break;
         case eFOC_Step_2:
-            if(pSys->focTaskTimeCnt++ > 100){pSys->focTaskTimeCnt = 0;pSys->focStep = eFOC_Step_3;}
+            if(pSys->focTaskTimeCnt++ > 100){Hardware_SetPulseCounter(0);pSys->focTaskTimeCnt = 0;pSys->focStep = eFOC_Step_3;}
             break;
         case eFOC_Step_3:
-            pIncABZ->realEleAngle = IncAbzCalculateRealEleAngle();
+            pIncABZ->realEleAngle = IncAbzCalculateRealEleAngle(pIncABZ);
             pSens->sinCosVal = Hardware_GetSinCosVal(pIncABZ->realEleAngle);
             iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
             pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
@@ -324,9 +333,64 @@ void FOC_Method_IncABZ(void)
             pSVP->volDQ.com2 = piOut.com2;
             if(pSys->focTaskTimeCnt++ == 9u){
                 pSys->focTaskTimeCnt = 0u;
-                pIncABZ->realEleSpeed = IncAbzCalculateRealEleSpeed();
+                pIncABZ->realEleSpeed = IncAbzCalculateRealEleSpeed(pIncABZ,pIncABZ->realEleSpeed);
                 pIqPIC->target = SpeedPIController(pSpPIC,pIncABZ->realEleSpeed);
             }
+            break;
+        default:
+            break;
+    }
+}
+
+void FOC_Method_IF_Luenberger(void)
+{
+    Components2 iAlphaBeta,piOut;
+    switch(pSys->focStep){
+        case eFOC_Step_1:
+            if(pSys->focTaskTimeCnt++ < 2000){
+                pIdPIC->target = pIF->iqRef;
+                pIqPIC->target = 0.f;
+                pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
+                iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
+                pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
+                piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+                pSVP->volDQ.com1 = piOut.com1;
+                pSVP->volDQ.com2 = piOut.com2;
+            }
+            else{
+                pSys->focTaskTimeCnt = 0;
+                pIdPIC->target = 0.f;
+                pSVP->volDQ.com1 = pSVP->volDQ.com2 = 0.f;
+                reset_CurrentPICHandler();
+                pSys->focStep = eFOC_Step_2;
+            }
+            break;
+        case eFOC_Step_2:
+            if(pSys->focTaskTimeCnt++ > 100){pIqPIC->target = pIF->iqRef;
+            pSys->focTaskTimeCnt = 0;pSys->focStep = eFOC_Step_3;}
+            break;
+        case eFOC_Step_3:
+            pSens->sinCosVal = Hardware_GetSinCosVal(pIF->eleAngle);
+            iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
+            pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
+            piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+            pSVP->volDQ.com1 = piOut.com1;
+            pSVP->volDQ.com2 = piOut.com2;
+            if(pSys->focTaskTimeCnt++ < pIF->accSpeedTime){pIF->eleSpeed += pSys->highSpeedClock * pIF->accEleSpeed;}
+            else{pSys->focTaskTimeCnt = 0;pSys->focStep = eFOC_Step_4;}
+            pIF->eleAngle += pSys->highSpeedClock * pIF->eleSpeed;
+            if(pIF->eleAngle > MATH_PI){pIF->eleAngle = pIF->eleAngle - 2.f * MATH_PI;}
+            else if(pIF->eleAngle < -MATH_PI){pIF->eleAngle = pIF->eleAngle + 2.f * MATH_PI;}
+        case eFOC_Step_4:
+            pSens->sinCosVal = Hardware_GetSinCosVal(pIF->eleAngle);
+            iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
+            pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
+            piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+            pSVP->volDQ.com1 = piOut.com1;
+            pSVP->volDQ.com2 = piOut.com2;
+            pIF->eleAngle += pSys->highSpeedClock * pIF->eleSpeed;
+            if(pIF->eleAngle > MATH_PI){pIF->eleAngle = pIF->eleAngle - 2.f * MATH_PI;}
+            else if(pIF->eleAngle < -MATH_PI){pIF->eleAngle = pIF->eleAngle + 2.f * MATH_PI;}
             break;
         default:
             break;

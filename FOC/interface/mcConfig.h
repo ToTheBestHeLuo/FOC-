@@ -79,6 +79,8 @@ extern void Hardware_StopPWM(void);
 extern void Hardware_ForceSwitchOnAllLowSides(void);
 extern void Hardware_ResetAllLowSides(void);
 
+extern void Hardware_SetPulseCounter(uint32_t cnt);
+extern uint32_t Hardware_GetPulseCounter(void);
 extern void Hardwarre_SetABZCounter(uint32_t cnt);
 extern uint32_t Hardware_GetABZCounter(void);
 extern uint32_t Hardware_GetABZCounterDir(void);
@@ -92,6 +94,7 @@ extern f32_t Hardware_FastReciprocalSquareRoot(f32_t x);
 
 extern Components2 Harware_GetCurrentAB(void);
 extern Components2 Hardware_GetCurrentOffset(void);
+
 #endif
 
 

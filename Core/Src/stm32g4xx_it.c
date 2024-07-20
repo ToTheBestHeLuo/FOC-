@@ -227,6 +227,7 @@ void DMA1_Channel2_IRQHandler(void)
 
   /* USER CODE END DMA1_Channel2_IRQn 1 */
 }
+
 /**
   * @brief This function handles ADC1 and ADC2 global interrupt.
   */

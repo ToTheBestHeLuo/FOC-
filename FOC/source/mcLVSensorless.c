@@ -124,7 +124,7 @@ void HFSI_Observer(volatile HFSIHandler* hfsi)
 {
     f32_t err = hfsi->est_err;
 
-    f32_t ts = hfsi->ts;
+    f32_t ts = pSys->highSpeedClock;
 
     hfsi->int1 += ts * err;
 
@@ -309,4 +309,6 @@ bool NSCheckStateMachine(volatile NSCheckHandler* ns)
 
     return ns->isFinished;
 }
+
+
 

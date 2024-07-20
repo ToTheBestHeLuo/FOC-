@@ -29,8 +29,8 @@ stm32g431rbt6_mc_abz\stm32g4xx_it.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4
 stm32g431rbt6_mc_abz\stm32g4xx_it.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_ll_tim.h
 stm32g431rbt6_mc_abz\stm32g4xx_it.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_ll_usart.h
 stm32g431rbt6_mc_abz\stm32g4xx_it.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_ll_gpio.h
-stm32g431rbt6_mc_abz\stm32g4xx_it.o: ..\SEGGER\RTT\SEGGER_RTT.h
-stm32g431rbt6_mc_abz\stm32g4xx_it.o: ..\SEGGER\RTT\../Config/SEGGER_RTT_Conf.h
+stm32g431rbt6_mc_abz\stm32g4xx_it.o: ../SEGGER/RTT/SEGGER_RTT.h
+stm32g431rbt6_mc_abz\stm32g4xx_it.o: ../SEGGER/RTT/../Config/SEGGER_RTT_Conf.h
 stm32g431rbt6_mc_abz\stm32g4xx_it.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 stm32g431rbt6_mc_abz\stm32g4xx_it.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 stm32g431rbt6_mc_abz\stm32g4xx_it.o: ../Core/Inc/stm32g4xx_it.h

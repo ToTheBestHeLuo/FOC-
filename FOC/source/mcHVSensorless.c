@@ -2,17 +2,7 @@
  * @Author: ToTheBestHeLuo 2950083986@qq.com
  * @Date: 2024-07-17 10:54:54
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-17 15:28:52
- * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcHVSensorless.c
- * @Description: 
- * 
- * Copyright (c) 2024 by ${git_name_email}, All Rights Reserved. 
- */
-/*
- * @Author: ToTheBestHeLuo 2950083986@qq.com
- * @Date: 2024-07-17 10:54:54
- * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-17 15:00:30
+ * @LastEditTime: 2024-07-18 13:18:15
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcHVSensorless.c
  * @Description: 
  * 
@@ -23,7 +13,7 @@
 
 void NonlinearFluxPLLObs(volatile NonlinearFluxObsHandler* pNLFO,volatile PIC* sp,f32_t cos,f32_t sin)
 {
-    f32_t ts = pNLFO->ts;
+    f32_t ts = pSys->highSpeedClock;
     f32_t in;
 
     Components2 sinCosX = CalculateSinCosValue(pNLFO->integrator4);
@@ -51,12 +41,13 @@ void NonlinearFluxPLLObs(volatile NonlinearFluxObsHandler* pNLFO,volatile PIC* s
 
 void NonlinearFluxObsProcess(volatile NonlinearFluxObsHandler* pNLFO,volatile PIC* sp,Components2* uAlphaBeta,Components2* iAlphaBeta)
 {
+    f32_t ts = pSys->highSpeedClock;
 
     f32_t L = pNLFO->Ls;
     f32_t R = pNLFO->Rs;
     f32_t Flux = pNLFO->Flux;
     f32_t gamma = pNLFO->gamma;
-    f32_t ts = pNLFO->ts;
+
 
     f32_t iAlpha = iAlphaBeta->com1;
     f32_t iBeta = iAlphaBeta->com2;
@@ -96,6 +87,12 @@ void NonlinearFluxObsProcess(volatile NonlinearFluxObsHandler* pNLFO,volatile PI
     pNLFO->sin *= x;
 
     NonlinearFluxPLLObs(pNLFO,sp,pNLFO->cos,pNLFO->sin);
+}
+
+
+void LuenbergerObs()
+{
+
 }
 
 

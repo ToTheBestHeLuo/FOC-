@@ -3,8 +3,8 @@
 
 #include "mcVar.h"
 
-extern f32_t IncAbzCalculateRealEleAngle(void);
-extern f32_t IncAbzCalculateRealEleSpeed(void);
+extern f32_t IncAbzCalculateRealEleAngle(volatile IncABZEncoder* pABZ);
+extern f32_t IncAbzCalculateRealEleSpeed(volatile IncABZEncoder* pABZ,f32_t targetEleSpeed);
 
 #endif
 

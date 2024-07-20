@@ -2,7 +2,7 @@
  * @Author: ToTheBestHeLuo 2950083986@qq.com
  * @Date: 2024-07-04 09:16:17
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-18 11:04:57
+ * @LastEditTime: 2024-07-20 10:01:52
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\interface\mcConfig.c
  * @Description: 
  * 
@@ -52,15 +52,15 @@ void Hardware_SafatyTaskEvent(void)
     uint16_t index3 = (index + 2) % sizeof(frameReceiveForUSART);
     uint16_t index4 = (index + 3) % sizeof(frameReceiveForUSART);
     if(frameReceiveForUSART.receiveDat[index1] == 'S' && frameReceiveForUSART.receiveDat[index2] == ':' && frameReceiveForUSART.receiveDat[index4] == '\n'){
-        pSpPIC->target = 2 * MATH_PI * frameReceiveForUSART.receiveDat[index3];
+        pSpPIC->target = -2.f * MATH_PI * frameReceiveForUSART.receiveDat[index3];
         frameReceiveForUSART.receiveDat[index1] = frameReceiveForUSART.receiveDat[index2] = '\0';
         frameReceiveForUSART.receiveDat[index3] = frameReceiveForUSART.receiveDat[index4] = '\0';
     }
 
     //1ms传输一次数据到上位机
     if(LL_DMA_GetDataLength(DMA1,LL_DMA_CHANNEL_1) == 0u){
-        frameSendForUSART.dat0 = pSpPIC->target;
-        frameSendForUSART.dat1 = pIncABZ->realEleSpeed;
+        frameSendForUSART.dat0 = pIncABZ->realEleSpeed;
+        frameSendForUSART.dat1 = pSpPIC->target;
         LL_DMA_DisableChannel(DMA1,LL_DMA_CHANNEL_1);
         LL_DMA_SetDataLength(DMA1,LL_DMA_CHANNEL_1,sizeof(FrameSendForUSART));
         LL_DMA_EnableChannel(DMA1,LL_DMA_CHANNEL_1);
@@ -230,6 +230,15 @@ f32_t Hardware_GetTemperature(void)
     return (float)dat * 0.125f;
 }
 
+
+void Hardware_SetPulseCounter(uint32_t cnt)
+{
+    LL_TIM_SetCounter(TIM17,cnt);
+}
+uint32_t Hardware_GetPulseCounter(void)
+{
+    return LL_TIM_GetCounter(TIM17);
+}
 void Hardwarre_SetABZCounter(uint32_t cnt)
 {
     LL_TIM_SetCounter(TIM8,cnt);

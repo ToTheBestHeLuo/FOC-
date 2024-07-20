@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-18 09:59:27
+ * @LastEditTime: 2024-07-20 11:00:12
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcVar.c
  * @Description: 
  * 
@@ -28,6 +28,8 @@ volatile NSIdentifyProcessHandler NSIdendityHandler;
 volatile MC_ParameterIdentify_Handler MCParameterIdentifyHandler;
 volatile NSCheckHandler NSHandler;
 volatile NonlinearFluxObsHandler NonlinearFluxHandler;
+volatile OpenLoop_IF_Handler IFHandler;
+volatile LuenbergerObsHandler luenbergerObsHandler;
 
 volatile MCSysHandler* pSys = &mcSystemHandler;
 volatile SvpwmHandler* pSVP = &svpwmHandler;
@@ -43,6 +45,8 @@ volatile NSIdentifyProcessHandler* pNSIdentify = &NSIdendityHandler;
 volatile MC_ParameterIdentify_Handler* pParmeterIndentify = &MCParameterIdentifyHandler;
 volatile NSCheckHandler* pNS = &NSHandler;
 volatile NonlinearFluxObsHandler* pNonlinearFlux = &NonlinearFluxHandler;
+volatile OpenLoop_IF_Handler* pIF = &IFHandler;
+volatile LuenbergerObsHandler* pLuenberger = &luenbergerObsHandler;
 
 void reset_All(void)
 {
@@ -61,6 +65,9 @@ void reset_All(void)
     reset_NSCheckHandler();
     reset_NonlinearFluxObsHandler();
     reset_IncABZHandler();
+
+    reset_IFHandler();
+    reset_Luenberger();
 }
 void reset_MCSysHandler(void)
 {
@@ -71,6 +78,10 @@ void reset_MCSysHandler(void)
     mcSystemHandler.focTaskTimeCnt = 0u;
     mcSystemHandler.controlMethod = eMethod_IncABZ;
     mcSystemHandler.focStep = eFOC_Step_1;
+
+    mcSystemHandler.lowSpeedClock = 0.001f;
+    mcSystemHandler.highSpeedClock = 0.0001f;
+    mcSystemHandler.pulseSpeedClock = 1.f / 170000000.f;
 }
 
 void reset_SvpwmHandler(void)
@@ -134,7 +145,6 @@ void reset_HFSIHandler(void)
     hfsiHandler.est_err = 0.f;
     hfsiHandler.int1 = 0.f;hfsiHandler.int2 = 0.f;
     hfsiHandler.response_iDQ.com1 = hfsiHandler.response_iDQ.com2 = 0.f;
-    hfsiHandler.ts = 0.0001f;
     hfsiHandler.kP = 200.f;
     hfsiHandler.kI = 10.f;
     hfsiHandler.iAlphaBetaLast.com1 = hfsiHandler.iAlphaBetaLast.com2 = 0.f;
@@ -145,15 +155,12 @@ void reset_CurrentPICHandler(void)
 {
     currentIdPICHandler.errInt = 0.f;
     currentIqPICHandler.errInt = 0.f;
-    currentIdPICHandler.ts = 0.0001f;
-    currentIqPICHandler.ts = 0.0001f;
 }
 
 void reset_SpeedPICHandler(void)
 {
     speedPICHandler.errInt = 0.f;
     speedPICHandler.target = 0.f;
-    speedPICHandler.ts = 0.001f;
 }
 
 void reset_NSIdentifyHandler(void)
@@ -177,7 +184,6 @@ void reset_ParmeterHandler(void)
 {
     MCParameterIdentifyHandler.injectSigAmp = 1.f;
     MCParameterIdentifyHandler.injectFre = 200.f;
-    MCParameterIdentifyHandler.ts = 0.0001f;
     MCParameterIdentifyHandler.mc_Ls = 0.f;
     MCParameterIdentifyHandler.mc_Rs = 0.f;
     MCParameterIdentifyHandler.demodulation_phaseCompensate = -0.058293997016611f * 7.f;
@@ -207,7 +213,6 @@ void reset_NonlinearFluxObsHandler(void)
     NonlinearFluxHandler.Flux = 0.0107f;
     NonlinearFluxHandler.Ls = 0.001f * 1.5f * 0.5f * 0.95f;
     NonlinearFluxHandler.Rs = 0.375f * 1.5f * 0.5f * 0.95f;
-    NonlinearFluxHandler.ts = 0.0001f;
     NonlinearFluxHandler.gamma = 10000.f;
     NonlinearFluxHandler.est_eleSpeedLPF = 0.f;
     NonlinearFluxHandler.kP = 200.f;
@@ -231,11 +236,29 @@ void reset_IncABZHandler(void)
     incABZHandler.abzCounterMode = eABZ_X4;
     incABZHandler.encoderPPR_Uint = ABZ_PPR;
     incABZHandler.encoderPPR_XX_Uint = incABZHandler.encoderPPR_Uint * (uint32_t)incABZHandler.abzCounterMode;
-    incABZHandler.eleSpeedCalculateFacotr = 2.f * MATH_PI * (f32_t)Motor_PolePairs / ((f32_t)incABZHandler.encoderPPR_XX_Uint * speedPICHandler.ts);
+    incABZHandler.eleSpeedCalculateFacotr = 2.f * MATH_PI * (f32_t)Motor_PolePairs / ((f32_t)incABZHandler.encoderPPR_XX_Uint * pSys->lowSpeedClock);
     incABZHandler.eleAngleCalculateFacotr = (f32_t)incABZHandler.encoderPPR_XX_Uint / (f32_t)Motor_PolePairs / 2.f;
     incABZHandler.realEleSpeed = 0.f;
+    incABZHandler.lowEleSpeedThreshold = 2.f * MATH_PI * 20.f;
+    incABZHandler.highEleSpeedThreshold = 2.f * MATH_PI * 30.f;
     incABZHandler.dirLPF = 0;
     incABZHandler.motorRunSta = -1;
+
+    if(incABZHandler.lowEleSpeedThreshold < 0.f) incABZHandler.lowEleSpeedThreshold = -incABZHandler.lowEleSpeedThreshold;
+}
+
+void reset_IFHandler(void)
+{
+    IFHandler.accEleSpeed = MATH_PI * 2.f * 400.f;
+    IFHandler.accSpeedTime = 1000u;
+    IFHandler.eleAngle = 0.f;
+    IFHandler.eleSpeed = 0.f;
+    IFHandler.iqRef = 4.f;
+}
+
+void reset_Luenberger(void)
+{
+
 }
 
 

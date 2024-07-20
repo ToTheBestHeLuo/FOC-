@@ -68,6 +68,7 @@ static void MX_USART3_UART_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_CORDIC_Init(void);
 static void MX_CRC_Init(void);
+static void MX_TIM17_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -144,6 +145,7 @@ int main(void)
   MX_TIM2_Init();
   MX_CORDIC_Init();
   MX_CRC_Init();
+  MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
   /*=========================BOOT=================================*/
   uint32_t isBootFromMainFlash = READ_BIT(FLASH->SEC1R,FLASH_SEC1R_BOOT_LOCK);
@@ -269,6 +271,10 @@ int main(void)
   LL_DMA_ConfigAddresses(DMA2,LL_DMA_CHANNEL_2,(uint32_t)&I2C1->RXDR,(uint32_t)&tempDat,LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
   LL_DMA_SetDataLength(DMA2,LL_DMA_CHANNEL_2,2);
   LL_DMA_EnableChannel(DMA2,LL_DMA_CHANNEL_2);
+
+  /*===========================TIM 17 �? work as a pulse clock===============================*/
+
+  LL_TIM_EnableCounter(TIM17);
 
   /*===========================FOC start===============================*/
 	
@@ -1466,6 +1472,39 @@ static void MX_TIM8_Init(void)
   /* USER CODE BEGIN TIM8_Init 2 */
 
   /* USER CODE END TIM8_Init 2 */
+
+}
+
+/**
+  * @brief TIM17 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM17_Init(void)
+{
+
+  /* USER CODE BEGIN TIM17_Init 0 */
+
+  /* USER CODE END TIM17_Init 0 */
+
+  LL_TIM_InitTypeDef TIM_InitStruct = {0};
+
+  /* Peripheral clock enable */
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM17);
+
+  /* USER CODE BEGIN TIM17_Init 1 */
+
+  /* USER CODE END TIM17_Init 1 */
+  TIM_InitStruct.Prescaler = 0;
+  TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
+  TIM_InitStruct.Autoreload = 65535;
+  TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
+  TIM_InitStruct.RepetitionCounter = 0;
+  LL_TIM_Init(TIM17, &TIM_InitStruct);
+  LL_TIM_DisableARRPreload(TIM17);
+  /* USER CODE BEGIN TIM17_Init 2 */
+
+  /* USER CODE END TIM17_Init 2 */
 
 }
 

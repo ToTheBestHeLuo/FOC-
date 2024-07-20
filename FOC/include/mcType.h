@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-12 13:09:47
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-16 10:45:03
+ * @LastEditTime: 2024-07-20 10:35:37
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\include\mcType.h
  * @Description: 
  * 
@@ -34,7 +34,8 @@ typedef enum{
     eMethod_IncABZ = 0,
     eMethod_AbsABZ = 1,
     eMethod_ParIdentify = 2,
-    eMethod_NonlinearFlux = 3
+    eMethod_NonlinearFlux = 3,
+    eMethod_IF_Luenberger = 4
 }MC_ControlMethod;
 
 typedef enum{
@@ -100,7 +101,7 @@ typedef struct
     uint32_t zIndexTimCnt;
     uint32_t lastEncoderCnt;
 
-    f32_t realEleSpeed,realEleAngle;
+    f32_t realEleSpeed,realEleAngle,lowEleSpeedThreshold,highEleSpeedThreshold;
     int8_t dirLPF;
     int8_t motorRunSta;
 }IncABZEncoder;
@@ -119,7 +120,9 @@ typedef enum{
     eFOC_Step_1 = 0,
     eFOC_Step_2 = 1,
     eFOC_Step_3 = 2,
-    eFOC_Step_4 = 3
+    eFOC_Step_4 = 3,
+    eFOC_Step_5 = 4,
+    eFOC_Step_6 = 5
 }MC_FocStep;
 
 typedef struct 
@@ -131,6 +134,7 @@ typedef struct
     uint32_t sysRunTime;
     MC_ControlMethod controlMethod;
     MC_FocStep focStep;
+    f32_t lowSpeedClock,highSpeedClock,pulseSpeedClock;
 }MCSysHandler;
 
 typedef struct 
@@ -169,7 +173,6 @@ typedef struct
     f32_t est_eleAngle;
     f32_t est_eleSpeed;
     f32_t est_err;
-    f32_t ts;
     bool inject_polarity;
 }HFSIHandler;
 
@@ -178,7 +181,6 @@ typedef struct{
     f32_t kP,kI;
     f32_t errInt;
     f32_t output;
-    f32_t ts;
 }PIC;
 
 typedef struct {
@@ -213,7 +215,6 @@ typedef struct{
     Components2 sig_HF,sig_LF,sig;
     f32_t z,phase;
 
-    f32_t ts;
     f32_t mc_Rs,mc_Ls;
 }MC_ParameterIdentify_Handler;
 
@@ -222,7 +223,6 @@ typedef struct
     f32_t Ls,Rs,Flux,gamma;
     f32_t delay1,delay2;
     f32_t integrator1,integrator2;
-    f32_t ts;
 
     f32_t sin,cos;
 
@@ -231,6 +231,19 @@ typedef struct
     f32_t est_eleSpeed,est_eleAngle,est_eleSpeedLPF;
     f32_t integrator3,integrator4;
 }NonlinearFluxObsHandler;
+
+typedef struct
+{
+    f32_t accEleSpeed,eleSpeed,eleAngle,iqRef;
+    uint32_t accSpeedTime;
+}OpenLoop_IF_Handler;
+
+typedef struct 
+{
+    f32_t xxxx;
+}LuenbergerObsHandler;
+
+
 
 #endif
 

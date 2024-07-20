@@ -72,7 +72,7 @@ void MCParIdentify_Rs_Ls(volatile MC_ParameterIdentify_Handler* parHandler,f32_t
     f32_t realPhase;
     f32_t idHF = BPF_Order_2st(id);
 
-    parHandler->demodulation_Phase += 2.f * MATH_PI * parHandler->injectFre * parHandler->ts;
+    parHandler->demodulation_Phase += 2.f * MATH_PI * parHandler->injectFre * pSys->highSpeedClock;
 
     if(parHandler->demodulation_Phase > MATH_PI){
         parHandler->demodulation_Phase = parHandler->demodulation_Phase - 2.f * MATH_PI;
