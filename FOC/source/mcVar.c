@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-20 11:00:12
+ * @LastEditTime: 2024-07-30 16:22:10
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcVar.c
  * @Description: 
  * 
@@ -71,12 +71,13 @@ void reset_All(void)
 }
 void reset_MCSysHandler(void)
 {
+    mcSystemHandler.isPhaseCurrenfOffsetFinished = false;
     mcSystemHandler.sysError = eOKFlag;
     mcSystemHandler.sysStu = eWaitSysReset;
     mcSystemHandler.sysRunTime = 0u;
     mcSystemHandler.safeTaskTimeCnt = 0u;
     mcSystemHandler.focTaskTimeCnt = 0u;
-    mcSystemHandler.controlMethod = eMethod_IncABZ;
+    mcSystemHandler.controlMethod = eMethod_NonlinearFlux_Debug;
     mcSystemHandler.focStep = eFOC_Step_1;
 
     mcSystemHandler.lowSpeedClock = 0.001f;
@@ -86,6 +87,8 @@ void reset_MCSysHandler(void)
 
 void reset_SvpwmHandler(void)
 {
+    svpwmHandler.svpFrequency = PerformanceCriticalTask_Timer_Frequency;
+    svpwmHandler.timerARR = Timer_Period_ARR;
     svpwmHandler.motorVoltage = MC_SafeVoltage;
     svpwmHandler.limitVoltage = MC_SafeVoltage / 1.732050807568877f;
     svpwmHandler.volAlphaBeta.com1 = 0.f;svpwmHandler.volAlphaBeta.com2 = 0.f;
@@ -100,7 +103,9 @@ void reset_MotorParHandler(void)
     motorParHandler.J = Motor_J;
     motorParHandler.Ld = Motor_Ld;
     motorParHandler.Lq = Motor_Lq;
+    motorParHandler.Ls = Motor_Ls;
     motorParHandler.polePairs = Motor_PolePairs;
+    motorParHandler.Rs = Motor_Rs;
 }
 
 void reset_SensorHandler(void)
@@ -130,6 +135,7 @@ void reset_HFPIHandler(void)
     hfpiHandler.est_isCompensate = false;
     hfpiHandler.isCompensateFinished = false;
     hfpiHandler.maxId = hfpiHandler.minId = 0.f;
+    hfpiHandler.injFrequency = 400.f;
 }
 
 void reset_HFSIHandler(void)
@@ -210,13 +216,9 @@ void reset_NonlinearFluxObsHandler(void)
 {
     NonlinearFluxHandler.delay1 = NonlinearFluxHandler.delay2 = 0.f;
     NonlinearFluxHandler.integrator1 = NonlinearFluxHandler.integrator2 = 0.f;
-    NonlinearFluxHandler.Flux = 0.0107f;
-    NonlinearFluxHandler.Ls = 0.001f * 1.5f * 0.5f * 0.95f;
-    NonlinearFluxHandler.Rs = 0.375f * 1.5f * 0.5f * 0.95f;
-    NonlinearFluxHandler.gamma = 10000.f;
-    NonlinearFluxHandler.est_eleSpeedLPF = 0.f;
-    NonlinearFluxHandler.kP = 200.f;
-    NonlinearFluxHandler.kI = 400.f;
+    NonlinearFluxHandler.gamma = 160000.f;
+    NonlinearFluxHandler.kP = 2000.f;
+    NonlinearFluxHandler.kI = 5000.f;
     NonlinearFluxHandler.est_eleAngle = 0.f;
     NonlinearFluxHandler.est_eleSpeed = 0.f;
     NonlinearFluxHandler.integrator3 = 0.f;
@@ -229,7 +231,6 @@ void reset_IncABZHandler(void)
     incABZHandler.isABZEncoderAlignment = false;
     incABZHandler.isABZEncoderFinished = false;
     incABZHandler.isAlignedOK = false;
-    incABZHandler.zeroPassABZCnt = 0u;
     incABZHandler.zIndexTimCnt = 0u;
     incABZHandler.lastEncoderCnt = 0u;
 
@@ -241,8 +242,6 @@ void reset_IncABZHandler(void)
     incABZHandler.realEleSpeed = 0.f;
     incABZHandler.lowEleSpeedThreshold = 2.f * MATH_PI * 20.f;
     incABZHandler.highEleSpeedThreshold = 2.f * MATH_PI * 30.f;
-    incABZHandler.dirLPF = 0;
-    incABZHandler.motorRunSta = -1;
 
     if(incABZHandler.lowEleSpeedThreshold < 0.f) incABZHandler.lowEleSpeedThreshold = -incABZHandler.lowEleSpeedThreshold;
 }

@@ -1,8 +1,8 @@
 /*
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-12 13:28:22
- * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
- * @LastEditTime: 2024-07-07 12:24:35
+ * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
+ * @LastEditTime: 2024-07-28 10:06:21
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\include\mcMath.h
  * @Description: 
  * 
@@ -21,6 +21,8 @@ extern Components3 AlphaBeta_Abc_Trans(volatile Components2* alphaBeta);
 extern Components2 AlphaBeta_Dq_Trans(volatile Components2* alphaBeta,volatile Components2* sinCos);
 extern Components2 Dq_AlphaBeta_Trans(volatile Components2* dq,volatile Components2* sinCos);
 
+extern bool CalculateIsInLimited(f32_t in,f32_t limit);
+extern f32_t CalculateSquare(f32_t in);
 extern Components2 CalculateSinCosValue(f32_t eleAngle);
 extern f32_t FastSquareRoot(f32_t x);
 extern f32_t FastReciprocalSquareRoot(f32_t x);

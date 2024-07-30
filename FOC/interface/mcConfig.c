@@ -2,7 +2,7 @@
  * @Author: ToTheBestHeLuo 2950083986@qq.com
  * @Date: 2024-07-04 09:16:17
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-20 10:01:52
+ * @LastEditTime: 2024-07-29 16:10:17
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\interface\mcConfig.c
  * @Description: 
  * 
@@ -33,15 +33,12 @@ FrameSendForUSART frameSendForUSART = {
 void Hardware_SafatyTaskEvent(void)
 {
     static uint32_t timeBase = 0u;
-    //1.s温度采集任务
+    //1s温度采集任务
     if((timeBase % 1000) == 0u){
         pSens->busAndTemp.com2 = Hardware_GetTemperature();
         if(pSens->busAndTemp.com2 > 65.f){
             Hardware_StopPWM();
         }
-    }
-    //1s系统运行状态的指示
-    if((timeBase % 1000) == 0u){
         LL_GPIO_TogglePin(GPIOC,LL_GPIO_PIN_10);
     }
     
@@ -52,46 +49,50 @@ void Hardware_SafatyTaskEvent(void)
     uint16_t index3 = (index + 2) % sizeof(frameReceiveForUSART);
     uint16_t index4 = (index + 3) % sizeof(frameReceiveForUSART);
     if(frameReceiveForUSART.receiveDat[index1] == 'S' && frameReceiveForUSART.receiveDat[index2] == ':' && frameReceiveForUSART.receiveDat[index4] == '\n'){
-        pSpPIC->target = -2.f * MATH_PI * frameReceiveForUSART.receiveDat[index3];
+        uint8_t receiveDat = frameReceiveForUSART.receiveDat[index3];
+        if(receiveDat < 0xC9){
+            pSpPIC->target = 2.f * MATH_PI * receiveDat;
+        }else{
+            pSpPIC->target = -pSpPIC->target;
+        }
         frameReceiveForUSART.receiveDat[index1] = frameReceiveForUSART.receiveDat[index2] = '\0';
         frameReceiveForUSART.receiveDat[index3] = frameReceiveForUSART.receiveDat[index4] = '\0';
     }
 
     //1ms传输一次数据到上位机
     if(LL_DMA_GetDataLength(DMA1,LL_DMA_CHANNEL_1) == 0u){
-        frameSendForUSART.dat0 = pIncABZ->realEleSpeed;
-        frameSendForUSART.dat1 = pSpPIC->target;
+        frameSendForUSART.dat0 = pSens->currentAB.com1;
+        frameSendForUSART.dat1 = pIncABZ->realEleAngle;
+        frameSendForUSART.dat2 = pNonlinearFlux->est_eleAngle;
         LL_DMA_DisableChannel(DMA1,LL_DMA_CHANNEL_1);
         LL_DMA_SetDataLength(DMA1,LL_DMA_CHANNEL_1,sizeof(FrameSendForUSART));
         LL_DMA_EnableChannel(DMA1,LL_DMA_CHANNEL_1);
     }
-
     index++;
+    
     timeBase++;
 }
 
 void Hardware_PerformanceTaskEvent(void)
 {
-    // static uint16_t cnt = 0u;
-    // frameForRTT.dat0 = pSens->currentDQ.com1;
-    // frameForRTT.dat1 = pSens->currentDQ.com2;
-    // frameForRTT.dat2 = pSens->currentAB.com1;
-    // frameForRTT.dat3 = pParmeterIndentify->mc_Rs;
-    // frameForRTT.dat4 = pParmeterIndentify->mc_Ls;
-    // if(cnt == 0u){
-    //     cnt++;
-    //     SEGGER_RTT_WriteNoLock(0,frameHeader,3);
-    //     SEGGER_RTT_WriteNoLock(0,&frameForRTT,sizeof(frameForRTT));
-    // }
-    // else if(cnt == 999u){
-    //     cnt = 0u;
-    //     SEGGER_RTT_WriteNoLock(0,&frameForRTT,sizeof(frameForRTT));
-    //     SEGGER_RTT_WriteNoLock(0,frameEnd,3);
-    // }
-    // else{
-    //     cnt++;
-    //     SEGGER_RTT_WriteNoLock(0,&frameForRTT,sizeof(frameForRTT));
-    // }
+    static uint16_t cnt = 0u;
+    frameForRTT.dat0 = pSens->currentAB.com1;
+    frameForRTT.dat1 = pSpPIC->target;
+    frameForRTT.dat2 = pNonlinearFlux->est_eleSpeed;
+    if(cnt == 0u){
+        cnt++;
+        SEGGER_RTT_WriteNoLock(0,frameHeader,3);
+        SEGGER_RTT_WriteNoLock(0,&frameForRTT,sizeof(frameForRTT));
+    }
+    else if(cnt == 999u){
+        cnt = 0u;
+        SEGGER_RTT_WriteNoLock(0,&frameForRTT,sizeof(frameForRTT));
+        SEGGER_RTT_WriteNoLock(0,frameEnd,3);
+    }
+    else{
+        cnt++;
+        SEGGER_RTT_WriteNoLock(0,&frameForRTT,sizeof(frameForRTT));
+    }
 }
 void Hardware_Init(void)
 {
@@ -122,6 +123,7 @@ void Hardware_StartPWM(void)
     LL_TIM_CC_EnableChannel(TIM1,LL_TIM_CHANNEL_CH3);
     LL_TIM_CC_EnableChannel(TIM1,LL_TIM_CHANNEL_CH3N);
     LL_TIM_EnableAllOutputs(TIM1);
+    LL_GPIO_ResetOutputPin(GPIOC,LL_GPIO_PIN_11);
 }
 
 void Hardware_StopPWM(void)
@@ -133,6 +135,7 @@ void Hardware_StopPWM(void)
     LL_TIM_CC_DisableChannel(TIM1,LL_TIM_CHANNEL_CH2N);
     LL_TIM_CC_DisableChannel(TIM1,LL_TIM_CHANNEL_CH3);
     LL_TIM_CC_DisableChannel(TIM1,LL_TIM_CHANNEL_CH3N);
+    LL_GPIO_SetOutputPin(GPIOC,LL_GPIO_PIN_11);
 }
 void Hardware_ForceSwitchOnAllLowSides(void)
 {
@@ -165,16 +168,19 @@ Components2 Hardware_GetSinCosVal(f32_t angleRad)
 {
     Components2 sinCos;
 
-    int32_t angleFixed = (angleRad / 3.141592653589793f * 2147483648.f);
+    // int32_t angleFixed = (angleRad / 3.141592653589793f * 2147483648.f);
 
-    LL_CORDIC_WriteData(CORDIC,angleFixed);
+    // LL_CORDIC_WriteData(CORDIC,angleFixed);
 
-    int32_t sinFixed = LL_CORDIC_ReadData(CORDIC);
-    int32_t cosFixed = LL_CORDIC_ReadData(CORDIC);
+    // int32_t sinFixed = LL_CORDIC_ReadData(CORDIC);
+    // int32_t cosFixed = LL_CORDIC_ReadData(CORDIC);
 
-    sinCos.com1 = sinFixed / 2147483648.f;
-    sinCos.com2 = cosFixed / 2147483648.f;
+    // sinCos.com1 = sinFixed / 2147483648.f;
+    // sinCos.com2 = cosFixed / 2147483648.f;
 
+    sinCos.com1 =  arm_sin_f32(angleRad);
+    sinCos.com2 = arm_cos_f32(angleRad);
+    
     return sinCos;
 }
 f32_t Hardware_FastSquareRoot(f32_t x)
@@ -197,18 +203,12 @@ f32_t Hardware_FastReciprocalSquareRoot(f32_t x)
 }
 Components2 Harware_GetCurrentAB(void)
 {
-    Components2 ab;
-    ab.com1 = (1.65f - ((float)LL_ADC_INJ_ReadConversionData12(ADC1,LL_ADC_INJ_RANK_1) / 65535.f * 3.3f)) / 20.f * 200.f;
-    ab.com2 = (1.65f - ((float)LL_ADC_INJ_ReadConversionData12(ADC2,LL_ADC_INJ_RANK_1) / 65535.f * 3.3f)) / 20.f * 200.f;
+    static Components2 ab = {0.f,0.f};
+    ab.com1 = (1.635f - ((float)LL_ADC_INJ_ReadConversionData12(ADC1,LL_ADC_INJ_RANK_1) / 65535.f * 3.27f)) / 20.f * 200.f \
+                * 0.98f + ab.com1 * 0.02f;
+    ab.com2 = (1.635f - ((float)LL_ADC_INJ_ReadConversionData12(ADC2,LL_ADC_INJ_RANK_1) / 65535.f * 3.27f)) / 20.f * 200.f \
+                * 0.98f + ab.com2 * 0.02f;
     return ab;
-}
-
-Components2 Hardware_GetCurrentOffset(void)
-{
-    Components2 offset;
-    offset.com1 = (1.65f - ((float)LL_ADC_INJ_ReadConversionData12(ADC1,LL_ADC_INJ_RANK_1) / 65535.f * 3.3f)) / 20.f * 200.f;
-    offset.com2 = (1.65f - ((float)LL_ADC_INJ_ReadConversionData12(ADC2,LL_ADC_INJ_RANK_1) / 65535.f * 3.3f)) / 20.f * 200.f;
-    return offset;
 }
 
 f32_t Hardware_GetBusVoltage(void)
@@ -216,9 +216,9 @@ f32_t Hardware_GetBusVoltage(void)
     f32_t bus;
     LL_ADC_REG_StartConversion(ADC1);
     while(LL_ADC_IsActiveFlag_EOC(ADC1) == 0u);
-    bus = (float)LL_ADC_REG_ReadConversionData12(ADC1) / 65535.f * 3.3f * 101.f;
+    bus = (float)LL_ADC_REG_ReadConversionData12(ADC1) / 65535.f * 3.27f * 101.f;
     while(LL_ADC_IsActiveFlag_EOC(ADC1) == 0u);
-    pSens->adcCorrectionCoefficient = 1.21142578125f / ((float)LL_ADC_REG_ReadConversionData12(ADC1) / 65535.f * 3.3f);
+    pSens->adcCorrectionCoefficient = 1.21142578125f / ((float)LL_ADC_REG_ReadConversionData12(ADC1) / 65535.f * 3.27f);
     return bus;
 }
 

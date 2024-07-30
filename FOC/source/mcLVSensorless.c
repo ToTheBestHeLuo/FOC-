@@ -2,7 +2,7 @@
  * @Author: ToTheBestHeLuo 2950083986@qq.com
  * @Date: 2024-07-17 11:08:21
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-17 15:00:15
+ * @LastEditTime: 2024-07-24 13:07:06
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcLVSensorless.c
  * @Description: 
  * 
@@ -83,9 +83,19 @@ Components2 HFPI_LPF2_2st(Components2* in0)
 
 f32_t HFPISensorlessObserver(volatile SensorHandler* sens,volatile HFPIHandler* hfpi)
 {
-    static uint32_t timeCnt = 0u;
+    f32_t clk = pSys->highSpeedClock;
+
     hfpi->inject_phaseSinCos = Hardware_GetSinCosVal(hfpi->inject_phase);
-    hfpi->inject_phase = ((f32_t)(timeCnt++) * PerformanceCriticalTask_Period) * 2.f * MATH_PI * 400.f;
+
+    hfpi->inject_phase += 2.f * MATH_PI * hfpi->injFrequency * clk;
+
+    if(hfpi->inject_phase > MATH_PI){
+        hfpi->inject_phase = hfpi->inject_phase - 2.f * MATH_PI;
+    }
+    else if(hfpi->inject_phase < -MATH_PI){
+        hfpi->inject_phase = hfpi->inject_phase + 2.f * MATH_PI;
+    }
+
     hfpi->response_iAlphaBeta = Abc_AlphaBeta_Trans(&sens->currentAB);
     hfpi->response_iDQ = AlphaBeta_Dq_Trans(&hfpi->response_iAlphaBeta,&sens->sinCosVal);
     sens->currentDQ = hfpi->response_iDQ;
@@ -94,7 +104,7 @@ f32_t HFPISensorlessObserver(volatile SensorHandler* sens,volatile HFPIHandler* 
 
     hfpi->response_LF_iDQ = HFPI_LPF1_2st(&hfpi->response_iDQ);
 
-    Components2 tmp = {-hfpi->response_HF_iDQ.com1 * hfpi->inject_phaseSinCos.com1,hfpi->response_HF_iDQ.com2 * hfpi->inject_phaseSinCos.com1};
+    Components2 tmp = {hfpi->response_HF_iDQ.com1 * hfpi->inject_phaseSinCos.com1,hfpi->response_HF_iDQ.com2 * hfpi->inject_phaseSinCos.com1};
 
     tmp = HFPI_LPF2_2st(&tmp);
 
@@ -103,12 +113,13 @@ f32_t HFPISensorlessObserver(volatile SensorHandler* sens,volatile HFPIHandler* 
     static f32_t errInt0 = 0.f;
     static f32_t errInt1 = 0.f;
 
-    errInt0 += hfpi->est_err * PerformanceCriticalTask_Period;
-    f32_t tmp0 = errInt0 * 4.f + hfpi->est_err * 200.f;
+    errInt0 += hfpi->est_err * clk;
 
-    hfpi->est_eleSpeed = tmp0 * 0.001f + hfpi->est_eleSpeed * 0.999f;
+    f32_t tmp0 = errInt0 * 20.f + hfpi->est_err * 200.f;
 
-    errInt1 += tmp0 * PerformanceCriticalTask_Period;
+    hfpi->est_eleSpeed = tmp0 * 0.1f + hfpi->est_eleSpeed * 0.99f;
+
+    errInt1 += tmp0 * clk;
 
     if(errInt1 > MATH_PI)
         errInt1 = -MATH_PI * 2.f + errInt1;
@@ -117,7 +128,7 @@ f32_t HFPISensorlessObserver(volatile SensorHandler* sens,volatile HFPIHandler* 
 
     hfpi->est_eleAngle = errInt1;
 
-    return hfpi->inject_phaseSinCos.com2 * 1.f;
+    return hfpi->inject_phaseSinCos.com2 * 3.f;
 }
 
 void HFSI_Observer(volatile HFSIHandler* hfsi)

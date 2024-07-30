@@ -265,7 +265,7 @@ void EXTI9_5_IRQHandler(void)
         pIncABZ->zIndexTimCnt = Hardware_GetABZCounter();
       }
       else{
-        Hardwarre_SetABZCounter(pIncABZ->zIndexTimCnt);
+        LL_TIM_SetCounter(TIM8,pIncABZ->zIndexTimCnt);
       }
     }
     /* USER CODE END LL_EXTI_LINE_6 */
@@ -273,22 +273,6 @@ void EXTI9_5_IRQHandler(void)
   /* USER CODE BEGIN EXTI9_5_IRQn 1 */
 
   /* USER CODE END EXTI9_5_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM8 update interrupt.
-  */
-void TIM8_UP_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM8_UP_IRQn 0 */
-  if(LL_TIM_IsActiveFlag_UPDATE(TIM8)){
-    LL_TIM_ClearFlag_UPDATE(TIM8);
-    pIncABZ->zeroPassABZCnt = 1u;
-  }
-  /* USER CODE END TIM8_UP_IRQn 0 */
-  /* USER CODE BEGIN TIM8_UP_IRQn 1 */
-
-  /* USER CODE END TIM8_UP_IRQn 1 */
 }
 
 /**

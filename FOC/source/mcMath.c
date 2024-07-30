@@ -2,7 +2,7 @@
  * @Author: ToTheBestHeLuo 2950083986@qq.com
  * @Date: 2024-07-04 09:16:17
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-17 15:00:51
+ * @LastEditTime: 2024-07-28 10:08:43
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcMath.c
  * @Description: 
  * 
@@ -13,6 +13,19 @@
 #include "../include/mcMath.h"
 
 #define sqrt3 1.732050807568877f
+
+bool CalculateIsInLimited(f32_t in,f32_t limit)
+{
+    limit = abs(limit);
+    in = abs(in);
+    if(in > limit) return false;
+    return true;
+}
+
+f32_t CalculateSquare(f32_t in)
+{
+    return in * in;
+}
 
 Components2 CalculateSinCosValue(f32_t eleAngle)
 {

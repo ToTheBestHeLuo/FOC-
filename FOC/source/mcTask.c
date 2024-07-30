@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-20 10:56:33
+ * @LastEditTime: 2024-07-30 14:41:09
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcTask.c
  * @Description: 
  * 
@@ -19,14 +19,22 @@
 
 #define sqrt3 1.732050807568877f
 
-void SectorCalModeSvpwm(volatile SvpwmHandler* svp);
+static f32_t adcOffsetFilterA[100] = {0.f};
+static f32_t adcOffsetFilterB[100] = {0.f};
+
+const uint32_t lengthCurrentFilter = sizeof(adcOffsetFilterA) / sizeof(f32_t);
+
+void SectorCalModeSvpwm(volatile SvpwmHandler* svp,f32_t bus);
 Components2 CurrentPIController(volatile PIC* idPIC,volatile PIC* iqPIC,volatile Components2* idqReal);
 f32_t SpeedPIController(volatile PIC* speedPIC,f32_t realSpeed);
 
 void FOC_Method_IncABZ(void);
 void FOC_Method_ParIdentify(void);
 void FOC_Method_NonlinearFlux(void);
+void FOC_Method_NonlinearFlux_Debug(void);
 void FOC_Method_IF_Luenberger(void);
+void FOC_Method_IF_Luenberger_Debug(void);
+void FOC_Method_HFPI_WithoutNS(void);
 
 void SectorVoltageLimit(volatile SvpwmHandler* svp,Components2* svpAlphaBeta)
 {
@@ -36,8 +44,10 @@ void SectorVoltageLimit(volatile SvpwmHandler* svp,Components2* svpAlphaBeta)
     }
 }
 
-void SectorCalModeSvpwm(volatile SvpwmHandler* svp)
+void SectorCalModeSvpwm(volatile SvpwmHandler* svp,f32_t bus)
 {
+    f32_t period = pSys->highSpeedClock;
+
     f32_t u1,u2,u3,tx,ty;
     int8_t cnt = 0;
     f32_t volAlpha,volBeta;
@@ -46,7 +56,7 @@ void SectorCalModeSvpwm(volatile SvpwmHandler* svp)
     u1 = volBeta;
     u2 = sqrt3 / 2.f * volAlpha - 0.5f * volBeta;
     u3 = -sqrt3 / 2.f * volAlpha - 0.5f * volBeta;
-    f32_t cons = sqrt3 * PerformanceCriticalTask_Period / svp->motorVoltage;
+    f32_t cons = sqrt3 * period / bus;
 
     if(u1 > 0.f) cnt += 1;
     if(u2 > 0.f) cnt += 2;
@@ -60,69 +70,69 @@ void SectorCalModeSvpwm(volatile SvpwmHandler* svp)
             svp->sector = 2;
             tx = cons * (-sqrt3 / 2.f * volAlpha + 0.5f * volBeta);
             ty = cons * (sqrt3 / 2.f * volAlpha + 0.5f * volBeta);
-            ta = (PerformanceCriticalTask_Period - tx + ty) * 0.25f;
-            tb = (PerformanceCriticalTask_Period + tx + ty) * 0.25f;
-            tc = (PerformanceCriticalTask_Period - tx - ty) * 0.25f;
+            ta = (period - tx + ty) * 0.25f;
+            tb = (period + tx + ty) * 0.25f;
+            tc = (period - tx - ty) * 0.25f;
             break;
         case 2:
             svp->sector = 6;
             tx = cons * (sqrt3 / 2.f * volAlpha + 0.5f * volBeta);
             ty = -cons * (volBeta);
-            ta = (PerformanceCriticalTask_Period + tx + ty) * 0.25f;
-            tb = (PerformanceCriticalTask_Period - tx - ty) * 0.25f;
-            tc = (PerformanceCriticalTask_Period - tx + ty) * 0.25f;
+            ta = (period + tx + ty) * 0.25f;
+            tb = (period - tx - ty) * 0.25f;
+            tc = (period - tx + ty) * 0.25f;
             break;
         case 3:
             svp->sector = 1;
             tx = cons * (sqrt3 / 2.f * volAlpha - 0.5f * volBeta);
             ty = cons * (volBeta);
-            ta = (PerformanceCriticalTask_Period + tx + ty) * 0.25f;
-            tb = (PerformanceCriticalTask_Period - tx + ty) * 0.25f;
-            tc = (PerformanceCriticalTask_Period - tx - ty) * 0.25f;
+            ta = (period + tx + ty) * 0.25f;
+            tb = (period - tx + ty) * 0.25f;
+            tc = (period - tx - ty) * 0.25f;
             break;
         case 4:
             svp->sector = 4;
             tx = -cons * (volBeta);
             ty = cons * (-sqrt3 / 2.f * volAlpha + 0.5f * volBeta);
-            ta = (PerformanceCriticalTask_Period - tx - ty) * 0.25f;
-            tb = (PerformanceCriticalTask_Period - tx + ty) * 0.25f;
-            tc = (PerformanceCriticalTask_Period + tx + ty) * 0.25f;
+            ta = (period - tx - ty) * 0.25f;
+            tb = (period - tx + ty) * 0.25f;
+            tc = (period + tx + ty) * 0.25f;
             break;
         case 5:
             svp->sector = 3;
             tx = cons * (volBeta);
             ty = -cons * (sqrt3 / 2.f * volAlpha + 0.5f * volBeta);
-            ta = (PerformanceCriticalTask_Period - tx - ty) * 0.25f;
-            tb = (PerformanceCriticalTask_Period + tx + ty) * 0.25f;
-            tc = (PerformanceCriticalTask_Period - tx + ty) * 0.25f;
+            ta = (period - tx - ty) * 0.25f;
+            tb = (period + tx + ty) * 0.25f;
+            tc = (period - tx + ty) * 0.25f;
             break;
         case 6:
             svp->sector = 5;
             tx = -cons * (sqrt3 / 2.f * volAlpha + 0.5f * volBeta);
             ty = -cons * (-sqrt3 / 2.f * volAlpha + 0.5f * volBeta);
-            ta = (PerformanceCriticalTask_Period - tx + ty) * 0.25f;
-            tb = (PerformanceCriticalTask_Period - tx - ty) * 0.25f;
-            tc = (PerformanceCriticalTask_Period + tx + ty) * 0.25f;
+            ta = (period - tx + ty) * 0.25f;
+            tb = (period - tx - ty) * 0.25f;
+            tc = (period + tx + ty) * 0.25f;
             break;
         default:
-            ta = (PerformanceCriticalTask_Period) * 0.25f;
-            tb = (PerformanceCriticalTask_Period) * 0.25f;
-            tc = (PerformanceCriticalTask_Period) * 0.25f;
+            ta = (period) * 0.25f;
+            tb = (period) * 0.25f;
+            tc = (period) * 0.25f;
             break;
     }
 
     int32_t ccr1,ccr2,ccr3;
     
-    ccr1 = ta * PerformanceCriticalTask_Timer_Frequency;
-    ccr2 = tb * PerformanceCriticalTask_Timer_Frequency;
-    ccr3 = tc * PerformanceCriticalTask_Timer_Frequency;
+    ccr1 = ta * svp->svpFrequency;
+    ccr2 = tb * svp->svpFrequency;
+    ccr3 = tc * svp->svpFrequency;
 
     if(ccr1 < 0) ccr1 = 0;
-    else if(ccr1 > Timer_Period_ARR) ccr1 = Timer_Period_ARR;
+    else if(ccr1 > svp->timerARR) ccr1 = svp->timerARR;
     if(ccr2 < 0) ccr2 = 0;
-    else if(ccr2 > Timer_Period_ARR) ccr2 = Timer_Period_ARR;
+    else if(ccr2 > svp->timerARR) ccr2 = svp->timerARR;
     if(ccr3 < 0) ccr3 = 0;
-    else if(ccr3 > Timer_Period_ARR) ccr3 = Timer_Period_ARR;
+    else if(ccr3 > svp->timerARR) ccr3 = svp->timerARR;
 
     svp->ccr[0] = ccr1;
     svp->ccr[1] = ccr2;
@@ -131,8 +141,9 @@ void SectorCalModeSvpwm(volatile SvpwmHandler* svp)
 
 void SafetyTask(void)
 {
-    Components2 temp;
     static uint64_t sysRunTimeCnt = 0;
+    static f32_t busFilter[10] = {0.f};
+    const uint32_t lengthBusFilter = sizeof(busFilter) / sizeof(f32_t);
     switch(pSys->sysStu){
         case eWaitSysReset:
             Hardware_StopPWM();
@@ -140,9 +151,11 @@ void SafetyTask(void)
             pSys->sysStu = eWaitBusVoltage;
             break;
         case eWaitBusVoltage:
-            pSens->busAndTemp.com1 = Hardware_GetBusVoltage() * 0.1f + pSens->busAndTemp.com1 * 0.9f;
+            busFilter[sysRunTimeCnt % lengthBusFilter] = Hardware_GetBusVoltage();
+            pSens->busAndTemp.com1 = MedianFilter(busFilter,lengthBusFilter);
             if(pSens->busAndTemp.com1 > MC_SafeVoltage * 0.85f && pSens->busAndTemp.com1 < MC_SafeVoltage * 1.15f){
                 if(pSys->safeTaskTimeCnt++ > 50u){
+                    Hardware_ForceSwitchOnAllLowSides();
                     pSys->safeTaskTimeCnt = 0;
                     pSys->sysStu = eWaitCapCharge;            
                 }
@@ -151,21 +164,25 @@ void SafetyTask(void)
             break;
         case eWaitCapCharge:
             if(pSys->safeTaskTimeCnt++ > 50u){
+                pSys->focTaskTimeCnt = 0;
                 pSys->safeTaskTimeCnt = 0;
-                Hardware_ForceSwitchOnAllLowSides();
                 pSys->sysStu = eWaitCalADCOffset;
-                break;
+            }
+            else if(pSys->safeTaskTimeCnt > 45u){
+                uint32_t ccr = pSVP->timerARR;
+                Hardware_SetCCR(ccr,ccr,ccr);
+                Hardware_StartPWM();
+            }
+            else if(pSys->safeTaskTimeCnt > 35u){
+                Hardware_ResetAllLowSides();
             }
             break;
         case eWaitCalADCOffset:
-            temp = Hardware_GetCurrentOffset();
-            pSens->currentOffset.com1 = 0.9f * pSens->currentOffset.com1 + 0.1f * temp.com1;
-            pSens->currentOffset.com2 = 0.9f * pSens->currentOffset.com2 + 0.1f * temp.com2;
-            if(pSys->safeTaskTimeCnt++ > 1000u){
+            if(pSys->isPhaseCurrenfOffsetFinished){
+                pSens->currentOffset.com1 = MedianFilter(adcOffsetFilterA,lengthCurrentFilter);
+                pSens->currentOffset.com2 = MedianFilter(adcOffsetFilterB,lengthCurrentFilter);
                 pSys->safeTaskTimeCnt = 0;
-                Hardware_ResetAllLowSides();
                 pSys->sysStu = eWaitMCStart;
-                break;
             }
             break;
         case eWaitMCStart:
@@ -179,7 +196,8 @@ void SafetyTask(void)
     }
     if(pSys->sysStu == eSysRun){
         if(!Hardware_MCStartOrStop()){pSys->sysStu = eWaitSysReset;}
-        pSens->busAndTemp.com1 = Hardware_GetBusVoltage() * 0.99f + pSens->busAndTemp.com1 * 0.01f;
+        busFilter[sysRunTimeCnt % (sizeof(busFilter) / sizeof(f32_t))] = Hardware_GetBusVoltage();
+        pSens->busAndTemp.com1 = MedianFilter(busFilter,(sizeof(busFilter) / sizeof(f32_t)));
         if(pSens->busAndTemp.com1 < MC_SafeVoltage * 0.85f){
             if(pSys->safeTaskTimeCnt++ > 140u){
                 Hardware_StopPWM();
@@ -188,7 +206,7 @@ void SafetyTask(void)
                 pSys->sysStu = eWaitSysReset;
             }
         }
-        else if(pSens->busAndTemp.com1 > MC_SafeVoltage * 1.5f){
+        else if(pSens->busAndTemp.com1 > MC_SafeVoltage * 1.6f){
             if(pSys->safeTaskTimeCnt++ > 140u){
                 Hardware_StopPWM();
                 pSys->safeTaskTimeCnt = 0;
@@ -198,7 +216,9 @@ void SafetyTask(void)
         }
         else{pSys->safeTaskTimeCnt = 0;}
     }
+
     sysRunTimeCnt++;
+
     Hardware_SafatyTaskEvent();
 }
 
@@ -260,9 +280,9 @@ Components2 CurrentPIController(volatile PIC* idPIC,volatile PIC* iqPIC,volatile
 void PerformanceCriticalTask(void)
 {
     pSens->currentAB = Harware_GetCurrentAB();
-    pSens->currentAB.com1 -= pSens->currentOffset.com1;
-    pSens->currentAB.com2 -= pSens->currentOffset.com2;
     if(pSys->sysStu == eSysRun){ 
+        pSens->currentAB.com1 -= pSens->currentOffset.com1;
+        pSens->currentAB.com2 -= pSens->currentOffset.com2;
         switch(pSys->controlMethod){
             case eMethod_AbsABZ:
                 break;
@@ -275,26 +295,41 @@ void PerformanceCriticalTask(void)
             case eMethod_NonlinearFlux:
                 FOC_Method_NonlinearFlux();
                 break;
+            case eMethod_NonlinearFlux_Debug:
+                FOC_Method_NonlinearFlux_Debug();
+                break;
             case eMethod_IF_Luenberger:
                 FOC_Method_IF_Luenberger();
+                break;
+            case eMethod_IF_Luenberger_Debug:
+                FOC_Method_IF_Luenberger_Debug();
+                break;
+            case eMethod_HFPI_WithoutNS:
+                FOC_Method_HFPI_WithoutNS();
                 break;
             default:
                 break;
         }
         pSVP->volAlphaBeta = Dq_AlphaBeta_Trans(&pSVP->volDQ,&pSens->sinCosVal);
-        SectorCalModeSvpwm(pSVP);
-        Hardware_PerformanceTaskEvent();
+        SectorCalModeSvpwm(pSVP,pSens->busAndTemp.com1);
+        Hardware_SetCCR(pSVP->ccr[0],pSVP->ccr[1],pSVP->ccr[2]);
+    }else if(pSys->sysStu == eWaitCalADCOffset && !pSys->isPhaseCurrenfOffsetFinished){
+        if(pSys->focTaskTimeCnt++ != lengthCurrentFilter){
+            adcOffsetFilterA[pSys->focTaskTimeCnt] = pSens->currentAB.com1;
+            adcOffsetFilterB[pSys->focTaskTimeCnt] = pSens->currentAB.com2;
+        }else{
+            pSys->focTaskTimeCnt = 0;
+            pSys->isPhaseCurrenfOffsetFinished = true;
+        }
     }
-    Hardware_SetCCR(pSVP->ccr[0],pSVP->ccr[1],pSVP->ccr[2]);
+    Hardware_PerformanceTaskEvent();
 }
 
 void FOC_Method_IncABZ(void)
 {
-    Components2 iAlphaBeta;
+    Components2 iAlphaBeta,uAlphaBeta;
     Components2 piOut;
-
     f32_t realSpeed = pIncABZ->realEleSpeed;
-
     switch(pSys->focStep){
         case eFOC_Step_1:
             if(pSys->focTaskTimeCnt++ < 2000){
@@ -306,7 +341,6 @@ void FOC_Method_IncABZ(void)
                 piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
                 pSVP->volDQ.com1 = piOut.com1;
                 pSVP->volDQ.com2 = piOut.com2;
-                Hardwarre_SetABZCounter(1250);
             }
             else{
                 pSys->focTaskTimeCnt = 0;
@@ -315,6 +349,7 @@ void FOC_Method_IncABZ(void)
                 pIncABZ->isABZEncoderAlignment = true;
                 pIncABZ->lastEncoderCnt = 1250;
                 reset_CurrentPICHandler();
+                Hardwarre_SetABZCounter(1250);
                 pSys->focStep = eFOC_Step_2;
             }
             break;
@@ -397,6 +432,65 @@ void FOC_Method_IF_Luenberger(void)
     }
 }
 
+void FOC_Method_IF_Luenberger_Debug(void)
+{
+    Components2 iAlphaBeta,piOut;
+    switch(pSys->focStep){
+        case eFOC_Step_1:
+            if(pSys->focTaskTimeCnt++ < 2000){
+                pIdPIC->target = pIF->iqRef;
+                pIqPIC->target = 0.f;
+                pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
+                iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
+                pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
+                piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+                pSVP->volDQ.com1 = piOut.com1;
+                pSVP->volDQ.com2 = piOut.com2;
+                Hardwarre_SetABZCounter(1250);
+            }
+            else{
+                pSys->focTaskTimeCnt = 0;
+                pIdPIC->target = 0.f;
+                pSVP->volDQ.com1 = pSVP->volDQ.com2 = 0.f;
+                reset_CurrentPICHandler();
+                pIncABZ->isABZEncoderAlignment = true;
+                pIncABZ->lastEncoderCnt = 1250;
+                pSys->focStep = eFOC_Step_2;
+            }
+            break;
+        case eFOC_Step_2:
+            if(pSys->focTaskTimeCnt++ > 100){pIqPIC->target = pIF->iqRef;
+            pSys->focTaskTimeCnt = 0;pSys->focStep = eFOC_Step_3;}
+            break;
+        case eFOC_Step_3:
+            pSens->sinCosVal = Hardware_GetSinCosVal(pIF->eleAngle);
+            iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
+            pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
+            piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+            pSVP->volDQ.com1 = piOut.com1;
+            pSVP->volDQ.com2 = piOut.com2;
+            if(pSys->focTaskTimeCnt++ < pIF->accSpeedTime){pIF->eleSpeed += pSys->highSpeedClock * pIF->accEleSpeed;}
+            else{pSys->focTaskTimeCnt = 0;pSys->focStep = eFOC_Step_4;}
+            pIF->eleAngle += pSys->highSpeedClock * pIF->eleSpeed;
+            if(pIF->eleAngle > MATH_PI){pIF->eleAngle = pIF->eleAngle - 2.f * MATH_PI;}
+            else if(pIF->eleAngle < -MATH_PI){pIF->eleAngle = pIF->eleAngle + 2.f * MATH_PI;}
+        case eFOC_Step_4:
+            pIncABZ->realEleAngle = IncAbzCalculateRealEleAngle(pIncABZ);
+            pSens->sinCosVal = Hardware_GetSinCosVal(pIF->eleAngle);
+            iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
+            pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
+            piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+            pSVP->volDQ.com1 = piOut.com1;
+            pSVP->volDQ.com2 = piOut.com2;
+            pIF->eleAngle += pSys->highSpeedClock * pIF->eleSpeed;
+            if(pIF->eleAngle > MATH_PI){pIF->eleAngle = pIF->eleAngle - 2.f * MATH_PI;}
+            else if(pIF->eleAngle < -MATH_PI){pIF->eleAngle = pIF->eleAngle + 2.f * MATH_PI;}
+            break;
+        default:
+            break;
+    }
+}
+
 void FOC_Method_ParIdentify(void)
 {
     static f32_t polarity = 1.f;
@@ -442,30 +536,121 @@ void FOC_Method_NonlinearFlux(void)
     Components2 iAlphaBeta,piOut,uAlphaBeta;
     switch(pSys->focStep){
         case eFOC_Step_1:
-            pIdPIC->target = 0.5f;
+            pIdPIC->target = 0.f;
+            pSpPIC->target = 2.f * MATH_PI * 40.f;
             pSys->focStep = eFOC_Step_2;
             break;
         case eFOC_Step_2:
-            if(pSys->focTaskTimeCnt++ == 9u){
-                pSys->focTaskTimeCnt = 0u;
-                realEleSpeed = pNonlinearFlux->est_eleSpeed;
-                pIqPIC->target = SpeedPIController(pSpPIC,realEleSpeed);
-            }
             pSens->sinCosVal = Hardware_GetSinCosVal(pNonlinearFlux->est_eleAngle);
             iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
+            pSens->currentAlphaBeta = iAlphaBeta;
             pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
             piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
-            piOut.com1 = piOut.com1 - pSens->currentDQ.com2 * pMotor->Lq * pNonlinearFlux->est_eleSpeedLPF;
-            piOut.com2 = piOut.com2 + (pSens->currentDQ.com1 * pMotor->Ld + pMotor->Flux) * pNonlinearFlux->est_eleSpeedLPF;
+            piOut.com1 = piOut.com1 - pSens->currentDQ.com2 * pMotor->Lq * pNonlinearFlux->est_eleSpeed;
+            piOut.com2 = piOut.com2 + (pSens->currentDQ.com1 * pMotor->Ld + pMotor->Flux) * pNonlinearFlux->est_eleSpeed;
             pSVP->volDQ.com1 = piOut.com1;
             pSVP->volDQ.com2 = piOut.com2;
             uAlphaBeta = Dq_AlphaBeta_Trans(&piOut,&pSens->sinCosVal);
-            NonlinearFluxObsProcess(pNonlinearFlux,pSpPIC,&uAlphaBeta,&iAlphaBeta);
+            NonlinearFluxObsProcess(pMotor,pNonlinearFlux,pSpPIC,&uAlphaBeta,&iAlphaBeta);
+            if(pSys->focTaskTimeCnt++ == 9u){
+                pSys->focTaskTimeCnt = 0u;
+                pIqPIC->target = SpeedPIController(pSpPIC,pNonlinearFlux->est_eleSpeed);
+            }
             break;
         default:
             break;
     }
 }
 
+void FOC_Method_NonlinearFlux_Debug(void)
+{
+    Components2 iAlphaBeta,uAlphaBeta;
+    Components2 piOut;
+    f32_t realEleSpeed;
+    switch(pSys->focStep){
+        case eFOC_Step_1:
+            if(pSys->focTaskTimeCnt++ < 20000){
+                pIdPIC->target = 3.f;
+                pIqPIC->target = 0.f;
+                pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
+                iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
+                pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
+                piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+                pSVP->volDQ.com1 = piOut.com1;
+                pSVP->volDQ.com2 = piOut.com2;
+            }
+            else{
+                pSys->focTaskTimeCnt = 0;
+                pIdPIC->target = 0.f;
+                pSpPIC->target = 2.f * MATH_PI * 30.f;
+                pSVP->volDQ.com1 = pSVP->volDQ.com2 = 0.f;
+                pIncABZ->isABZEncoderAlignment = true;
+                pIncABZ->lastEncoderCnt = 1250;
+                reset_CurrentPICHandler();
+                Hardwarre_SetABZCounter(1250);
+                pSys->focStep = eFOC_Step_2;
+            }
+            break;
+        case eFOC_Step_2:
+            if(pSys->focTaskTimeCnt++ > 100){Hardware_SetPulseCounter(0);pSys->focTaskTimeCnt = 0;pSys->focStep = eFOC_Step_3;}
+            break;
+        case eFOC_Step_3:
+            pIncABZ->realEleAngle = IncAbzCalculateRealEleAngle(pIncABZ);
+            pSens->sinCosVal = Hardware_GetSinCosVal(pNonlinearFlux->est_eleAngle);
+            iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
+            pSens->currentAlphaBeta = iAlphaBeta;
+            pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
+            piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+            piOut.com1 = piOut.com1 - pSens->currentDQ.com2 * pMotor->Lq * pNonlinearFlux->est_eleSpeed;
+            piOut.com2 = piOut.com2 + (pSens->currentDQ.com1 * pMotor->Ld + pMotor->Flux) * pNonlinearFlux->est_eleSpeed;
+            pSVP->volDQ.com1 = piOut.com1;
+            pSVP->volDQ.com2 = piOut.com2;
+            uAlphaBeta = Dq_AlphaBeta_Trans(&piOut,&pSens->sinCosVal);
+            NonlinearFluxObsProcess(pMotor,pNonlinearFlux,pSpPIC,&uAlphaBeta,&iAlphaBeta);
+            if(pSys->focTaskTimeCnt++ == 9u){
+                pSys->focTaskTimeCnt = 0u;
+                realEleSpeed = pNonlinearFlux->est_eleSpeed;
+                pIqPIC->target = SpeedPIController(pSpPIC,realEleSpeed);
+            }
+            break;
+        default:
+            break;
+    } 
+}
+
+void FOC_Method_HFPI_WithoutNS(void)
+{
+    Components2 iAlphaBeta,piOut;
+    f32_t injectVolD;
+    switch(pSys->focStep){
+        case eFOC_Step_1:
+            if(pSys->focTaskTimeCnt++ < 2000){
+                pIdPIC->target = 4.f;
+                pIqPIC->target = 0.f;
+                pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
+                iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
+                pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
+                piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+                pSVP->volDQ.com1 = piOut.com1;
+                pSVP->volDQ.com2 = piOut.com2;
+            }
+            else{
+                pSys->focTaskTimeCnt = 0;
+                pIdPIC->target = 0.f;
+                pSVP->volDQ.com1 = pSVP->volDQ.com2 = 0.f;
+                reset_CurrentPICHandler();
+                pSys->focStep = eFOC_Step_2;
+            }
+            break;
+        case eFOC_Step_2:
+            pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
+            injectVolD = HFPISensorlessObserver(pSens,pHFPI);
+            pSVP->volDQ.com1 = injectVolD;
+            pSVP->volDQ.com2 = 0.f;
+            break;
+        default:
+            break;
+    }
+}
 
 

@@ -2,7 +2,7 @@
  * @Author: ToTheBestHeLuo 2950083986@qq.com
  * @Date: 2024-07-17 14:40:07
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-20 11:10:54
+ * @LastEditTime: 2024-07-26 14:09:59
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcSensor.c
  * @Description: 
  * 
@@ -21,40 +21,22 @@ f32_t IncAbzCalculateRealEleAngle(volatile IncABZEncoder* pABZ)
 
 f32_t IncAbzCalculateRealEleSpeed(volatile IncABZEncoder* pABZ,f32_t targetEleSpeed)
 {
-    static f32_t realEleSpeed = 0.f;
+    static f32_t eleSpeed = 0.f;
     static uint8_t speedSta = 0xFF;
+    static f32_t calFactor = 0.f;
+    static int32_t difEncoderCnt = 0;
     
     uint32_t pulseCnt;
 
-    uint32_t lastEncoderCnt = pABZ->lastEncoderCnt;
-    uint32_t nowEncoderCnt = Hardware_GetABZCounter();
+    int32_t lastEncoderCnt = pABZ->lastEncoderCnt;
+    int32_t nowEncoderCnt = Hardware_GetABZCounter();
 
     pulseCnt = Hardware_GetPulseCounter();
-    uint32_t dir = Hardware_GetABZCounterDir();
     Hardware_SetPulseCounter(0);
 
-    int32_t difEncoderCnt = 0;
-
-    if(dir && pABZ->dirLPF++ == 4){
-        pABZ->motorRunSta = 1;
-        pABZ->dirLPF = 0;
-    }
-    else if(!dir && pABZ->dirLPF-- == -4){
-        pABZ->motorRunSta = 0;
-        pABZ->dirLPF = 0;
-    }
-
-    if(pABZ->zeroPassABZCnt){
-        if(pABZ->motorRunSta == 1){
-            difEncoderCnt = (int32_t)(incABZHandler.encoderPPR_XX_Uint + nowEncoderCnt - lastEncoderCnt);
-        }
-        else if(pABZ->motorRunSta == 0){
-            difEncoderCnt = (int32_t)(nowEncoderCnt - lastEncoderCnt - incABZHandler.encoderPPR_XX_Uint);
-        }
-        pABZ->zeroPassABZCnt = 0u;
-    }
-    else{
-        difEncoderCnt = nowEncoderCnt - lastEncoderCnt;
+    int32_t diff = nowEncoderCnt - lastEncoderCnt;
+    if(diff > -incABZHandler.encoderPPR_XX_Uint / 4 && diff < incABZHandler.encoderPPR_XX_Uint / 4){
+        difEncoderCnt = diff;
     }
 
     pIncABZ->lastEncoderCnt = nowEncoderCnt;
@@ -62,18 +44,17 @@ f32_t IncAbzCalculateRealEleSpeed(volatile IncABZEncoder* pABZ,f32_t targetEleSp
     if(targetEleSpeed < 0.f) targetEleSpeed = -targetEleSpeed;
 
     if(speedSta){
-        f32_t calFactor = 2.f * MATH_PI * (f32_t)pMotor->polePairs / ((f32_t)incABZHandler.encoderPPR_XX_Uint * (f32_t)pulseCnt * pSys->pulseSpeedClock);
-        realEleSpeed = (f32_t)(difEncoderCnt) * calFactor * 0.1f + realEleSpeed * 0.9f;
+        f32_t factor = 2.f * MATH_PI * (f32_t)pMotor->polePairs / ((f32_t)incABZHandler.encoderPPR_XX_Uint * (f32_t)pulseCnt * pSys->pulseSpeedClock);
+        calFactor = factor * 0.1f + calFactor * 0.9f;
+        eleSpeed = (f32_t)(difEncoderCnt) * calFactor * 0.1f + eleSpeed * 0.9f;
         if(targetEleSpeed > pIncABZ->highEleSpeedThreshold) speedSta = ~speedSta;
     }
     else{
-        realEleSpeed = (f32_t)(difEncoderCnt) * pABZ->eleSpeedCalculateFacotr * 0.1f + realEleSpeed * 0.9f;
-
+        eleSpeed = (f32_t)(difEncoderCnt) * pABZ->eleSpeedCalculateFacotr * 0.1f + eleSpeed * 0.9f;
         if(targetEleSpeed < pIncABZ->lowEleSpeedThreshold) speedSta = ~speedSta;
     }
 
-
-    return realEleSpeed;
+    return eleSpeed;
 }
 
 

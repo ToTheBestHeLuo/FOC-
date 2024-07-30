@@ -1,5 +1,15 @@
-#ifndef _MC_HVSENSORLESS_H_
-#define _MC_HVSENSORLESS_H_
+/*
+ * @Author: ToTheBestHeLuo 2950083986@qq.com
+ * @Date: 2024-07-17 11:07:25
+ * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
+ * @LastEditTime: 2024-07-24 12:43:32
+ * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\include\mcLVSensorless.h
+ * @Description: 
+ * 
+ * Copyright (c) 2024 by ${git_name_email}, All Rights Reserved. 
+ */
+#ifndef _MC_LVSENSORLESS_H_
+#define _MC_LVSENSORLESS_H_
 
 #include "mcVar.h"
 

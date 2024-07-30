@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-12 13:09:47
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-20 10:35:37
+ * @LastEditTime: 2024-07-26 14:10:56
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\include\mcType.h
  * @Description: 
  * 
@@ -35,7 +35,10 @@ typedef enum{
     eMethod_AbsABZ = 1,
     eMethod_ParIdentify = 2,
     eMethod_NonlinearFlux = 3,
-    eMethod_IF_Luenberger = 4
+    eMethod_NonlinearFlux_Debug = 4,
+    eMethod_IF_Luenberger = 5,
+    eMethod_IF_Luenberger_Debug = 6,
+    eMethod_HFPI_WithoutNS = 7
 }MC_ControlMethod;
 
 typedef enum{
@@ -73,7 +76,7 @@ typedef struct{
 
 typedef struct{
     uint8_t polePairs;
-    f32_t Ld,Lq;
+    f32_t Ld,Lq,Rs,Ls;
     f32_t J,Flux;
 }MC_MotorPar;
 
@@ -91,19 +94,15 @@ typedef struct
 
     ABZCounterMode abzCounterMode;
 
-    uint32_t encoderPPR_XX_Uint;
-    uint32_t encoderPPR_Uint;
+    int32_t encoderPPR_XX_Uint;
+    int32_t encoderPPR_Uint;
 
     f32_t eleSpeedCalculateFacotr;
     f32_t eleAngleCalculateFacotr;
-
-    uint8_t zeroPassABZCnt;
     uint32_t zIndexTimCnt;
     uint32_t lastEncoderCnt;
 
     f32_t realEleSpeed,realEleAngle,lowEleSpeedThreshold,highEleSpeedThreshold;
-    int8_t dirLPF;
-    int8_t motorRunSta;
 }IncABZEncoder;
 
 typedef struct 
@@ -112,6 +111,9 @@ typedef struct
     f32_t limitVoltage;
     Components2 volDQ;
     Components2 volAlphaBeta;
+
+    f32_t svpFrequency;
+    uint32_t timerARR;
     uint16_t ccr[3];
     int8_t sector;
 }SvpwmHandler;
@@ -135,6 +137,8 @@ typedef struct
     MC_ControlMethod controlMethod;
     MC_FocStep focStep;
     f32_t lowSpeedClock,highSpeedClock,pulseSpeedClock;
+
+    bool isPhaseCurrenfOffsetFinished;
 }MCSysHandler;
 
 typedef struct 
@@ -153,6 +157,7 @@ typedef struct
     f32_t est_eleSpeed;
     f32_t est_err;
     f32_t est_angleCompensate;
+    f32_t injFrequency;
     bool est_isCompensate;
     bool isCompensateFinished;
 }HFPIHandler;
@@ -220,7 +225,7 @@ typedef struct{
 
 typedef struct 
 {
-    f32_t Ls,Rs,Flux,gamma;
+    f32_t gamma;
     f32_t delay1,delay2;
     f32_t integrator1,integrator2;
 
@@ -228,7 +233,7 @@ typedef struct
 
     f32_t err;
     f32_t kP,kI;
-    f32_t est_eleSpeed,est_eleAngle,est_eleSpeedLPF;
+    f32_t est_eleSpeed,est_eleAngle;
     f32_t integrator3,integrator4;
 }NonlinearFluxObsHandler;
 

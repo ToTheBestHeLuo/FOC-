@@ -190,7 +190,7 @@ int main(void)
   /*===========================OVP===============================*/
   LL_DAC_Enable(DAC1,LL_DAC_CHANNEL_1);
 
-  LL_DAC_ConvertData12RightAligned(DAC1,LL_DAC_CHANNEL_1,1250);
+  LL_DAC_ConvertData12RightAligned(DAC1,LL_DAC_CHANNEL_1,1850);
 
   LL_DAC_TrigSWConversion(DAC1,LL_DAC_CHANNEL_1);
 
@@ -216,12 +216,10 @@ int main(void)
   LL_DMA_EnableChannel(DMA1,LL_DMA_CHANNEL_2);
   /*===========================ADC===============================*/
 	
-  LL_ADC_SetCalibrationFactor(ADC1,LL_ADC_SINGLE_ENDED,0x00);
   LL_ADC_StartCalibration(ADC1,LL_ADC_SINGLE_ENDED);
   while(LL_ADC_IsCalibrationOnGoing(ADC1)){
 
   }
-  LL_ADC_SetCalibrationFactor(ADC2,LL_ADC_SINGLE_ENDED,0x00);
   LL_ADC_StartCalibration(ADC2,LL_ADC_SINGLE_ENDED);
   while(LL_ADC_IsCalibrationOnGoing(ADC2)){
 
@@ -255,10 +253,10 @@ int main(void)
 
   LL_TIM_EnableCounter(TIM2);
 	LL_TIM_EnableCounter(TIM3);
-	LL_TIM_EnableCounter(TIM8);
-  /*===========================TIM8 : UEV IT===============================*/
 
-  LL_TIM_EnableIT_UPDATE(TIM8);
+  /*===========================TIM8 : ABZ Encoder===============================*/
+
+	LL_TIM_EnableCounter(TIM8);
 
   /*===========================I2C + TEMP + DMA===============================*/
 	
@@ -272,7 +270,7 @@ int main(void)
   LL_DMA_SetDataLength(DMA2,LL_DMA_CHANNEL_2,2);
   LL_DMA_EnableChannel(DMA2,LL_DMA_CHANNEL_2);
 
-  /*===========================TIM 17 �? work as a pulse clock===============================*/
+  /*===========================TIM 17 : work as a pulse clock===============================*/
 
   LL_TIM_EnableCounter(TIM17);
 
@@ -439,7 +437,7 @@ static void MX_ADC1_Init(void)
   /** Configure Injected Channel
   */
   LL_ADC_INJ_SetSequencerRanks(ADC1, LL_ADC_INJ_RANK_1, LL_ADC_CHANNEL_1);
-  LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_1, LL_ADC_SAMPLINGTIME_2CYCLES_5);
+  LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_1, LL_ADC_SAMPLINGTIME_6CYCLES_5);
   LL_ADC_SetChannelSingleDiff(ADC1, LL_ADC_CHANNEL_1, LL_ADC_SINGLE_ENDED);
 
   /** Configure Regular Channel
@@ -536,7 +534,7 @@ static void MX_ADC2_Init(void)
   /** Configure Injected Channel
   */
   LL_ADC_INJ_SetSequencerRanks(ADC2, LL_ADC_INJ_RANK_1, LL_ADC_CHANNEL_2);
-  LL_ADC_SetChannelSamplingTime(ADC2, LL_ADC_CHANNEL_2, LL_ADC_SAMPLINGTIME_2CYCLES_5);
+  LL_ADC_SetChannelSamplingTime(ADC2, LL_ADC_CHANNEL_2, LL_ADC_SAMPLINGTIME_6CYCLES_5);
   LL_ADC_SetChannelSingleDiff(ADC2, LL_ADC_CHANNEL_2, LL_ADC_SINGLE_ENDED);
   /* USER CODE BEGIN ADC2_Init 2 */
 
@@ -635,7 +633,7 @@ static void MX_COMP2_Init(void)
   /* USER CODE END COMP2_Init 1 */
   COMP_InitStruct.InputPlus = LL_COMP_INPUT_PLUS_IO2;
   COMP_InitStruct.InputMinus = LL_COMP_INPUT_MINUS_DAC3_CH2;
-  COMP_InitStruct.InputHysteresis = LL_COMP_HYSTERESIS_NONE;
+  COMP_InitStruct.InputHysteresis = LL_COMP_HYSTERESIS_70MV;
   COMP_InitStruct.OutputPolarity = LL_COMP_OUTPUTPOL_NONINVERTED;
   COMP_InitStruct.OutputBlankingSource = LL_COMP_BLANKINGSRC_NONE;
   LL_COMP_Init(COMP2, &COMP_InitStruct);
@@ -737,7 +735,7 @@ static void MX_COMP4_Init(void)
   /* USER CODE END COMP4_Init 1 */
   COMP_InitStruct.InputPlus = LL_COMP_INPUT_PLUS_IO1;
   COMP_InitStruct.InputMinus = LL_COMP_INPUT_MINUS_DAC3_CH2;
-  COMP_InitStruct.InputHysteresis = LL_COMP_HYSTERESIS_NONE;
+  COMP_InitStruct.InputHysteresis = LL_COMP_HYSTERESIS_70MV;
   COMP_InitStruct.OutputPolarity = LL_COMP_OUTPUTPOL_NONINVERTED;
   COMP_InitStruct.OutputBlankingSource = LL_COMP_BLANKINGSRC_NONE;
   LL_COMP_Init(COMP4, &COMP_InitStruct);
@@ -1443,10 +1441,6 @@ static void MX_TIM8_Init(void)
   GPIO_InitStruct.Alternate = LL_GPIO_AF_4;
   LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /* TIM8 interrupt Init */
-  NVIC_SetPriority(TIM8_UP_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),3, 0));
-  NVIC_EnableIRQ(TIM8_UP_IRQn);
-
   /* USER CODE BEGIN TIM8_Init 1 */
 
   /* USER CODE END TIM8_Init 1 */
@@ -1777,7 +1771,7 @@ static void MX_GPIO_Init(void)
   LL_EXTI_Init(&EXTI_InitStruct);
 
   /**/
-  LL_GPIO_SetPinPull(GPIOB, LL_GPIO_PIN_6, LL_GPIO_PULL_DOWN);
+  LL_GPIO_SetPinPull(GPIOB, LL_GPIO_PIN_6, LL_GPIO_PULL_NO);
 
   /**/
   LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_6, LL_GPIO_MODE_INPUT);
