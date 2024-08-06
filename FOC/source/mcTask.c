@@ -536,7 +536,6 @@ void FOC_Method_NonlinearFlux(void)
     switch(pSys->focStep){
         case eFOC_Step_1:
             pIdPIC->target = 0.f;
-            pSpPIC->target = 2.f * MATH_PI * 40.f;
             pSys->focStep = eFOC_Step_2;
             break;
         case eFOC_Step_2:
@@ -568,8 +567,13 @@ void FOC_Method_NonlinearFlux_Debug(void)
     f32_t realEleSpeed;
     switch(pSys->focStep){
         case eFOC_Step_1:
+<<<<<<< HEAD
             if(pSys->focTaskTimeCnt++ < 2000){
                 pIdPIC->target = 3.f;
+=======
+            if(pSys->focTaskTimeCnt++ < 20000){
+                pIdPIC->target = pIF->iqRef;
+>>>>>>> 180a730de5deca967448aa5b29c9b39d9ac3e843
                 pIqPIC->target = 0.f;
                 pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
                 iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
@@ -581,7 +585,6 @@ void FOC_Method_NonlinearFlux_Debug(void)
             else{
                 pSys->focTaskTimeCnt = 0;
                 pIdPIC->target = 0.f;
-                pSpPIC->target = 2.f * MATH_PI * 30.f;
                 pSVP->volDQ.com1 = pSVP->volDQ.com2 = 0.f;
                 pIncABZ->isABZEncoderAlignment = true;
                 pIncABZ->lastEncoderCnt = 1250;
