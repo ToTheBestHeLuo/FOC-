@@ -691,6 +691,11 @@
               <FileType>1</FileType>
               <FilePath>..\FOC\source\mcSensor.c</FilePath>
             </File>
+            <File>
+              <FileName>mcDigitalFilter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FOC\source\mcDigitalFilter.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

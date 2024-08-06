@@ -21,11 +21,11 @@ stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc
 stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_dma.h
 stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_dma_ex.h
 stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_cortex.h
+stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_crc.h
+stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_crc_ex.h
 stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_exti.h
 stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash.h
 stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash_ex.h
 stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash_ramfunc.h
 stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pwr.h
 stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pwr_ex.h
-stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim.h
-stm32g431rbt6_mc_abz\stm32g4xx_hal_cortex.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h

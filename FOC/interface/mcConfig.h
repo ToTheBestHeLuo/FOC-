@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-23 18:44:48
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-30 16:26:52
+ * @LastEditTime: 2024-08-01 16:33:21
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\interface\mcConfig.h
  * @Description: 
  * 
@@ -20,7 +20,7 @@
 #define Motor_Ld (0.001f)
 #define Motor_Lq (0.001f)
 #define Motor_Ls (0.001f)
-#define Motor_Rs (0.375)
+#define Motor_Rs (0.375f)
 #define Motor_J (0.000001f)
 #define Motor_Flux (0.011866667f)
 
@@ -31,15 +31,42 @@
 #define PerformanceCriticalTask_Timer_Frequency 170000000.f
 #define PerformanceCriticalTask_Period ((float)Timer_Period_ARR / PerformanceCriticalTask_Timer_Frequency * 2.f)
 
-#define PIC_Current_Out_Limit (MC_SafeVoltage / 1.85f)
-#define PIC_Current_Kp 2.64f
-#define PIC_Current_Ki 51.44f
+#define PIC_Current_Out_Limit (MC_SafeVoltage / 1.75f)
+#define PIC_Current_Kp (Motor_Ld * 2000.f)
+#define PIC_Current_Ki (Motor_Rs * 50.f)
 #define PIC_Current_Int_Limit (PIC_Current_Out_Limit / PIC_Current_Ki)
 
-#define PIC_Speed_Out_Limit 7.0f
+#define PIC_Speed_Out_Limit 6.9f
 #define PIC_Speed_Kp 0.01f
 #define PIC_Speed_Ki 0.10f
 #define PIC_Speed_Int_Limit (PIC_Speed_Out_Limit / PIC_Speed_Ki)
+
+// #define MC_SafeVoltage 24.f
+
+// #define Motor_PolePairs 20u
+// #define Motor_Ld (0.00005f)
+// #define Motor_Lq (0.00005f)
+// #define Motor_Ls (0.00005f)
+// #define Motor_Rs (0.05f)
+// #define Motor_J (0.000001f)
+// #define Motor_Flux (0.02f)
+
+// #define ABZ_PPR 2500u
+
+// #define Timer_Period_ARR    8499
+// #define SafetyTask_Period   0.001f
+// #define PerformanceCriticalTask_Timer_Frequency 170000000.f
+// #define PerformanceCriticalTask_Period ((float)Timer_Period_ARR / PerformanceCriticalTask_Timer_Frequency * 2.f)
+
+// #define PIC_Current_Out_Limit (MC_SafeVoltage / 1.85f)
+// #define PIC_Current_Kp (Motor_Ld * 2000.f)
+// #define PIC_Current_Ki (Motor_Rs * 50.f)
+// #define PIC_Current_Int_Limit (PIC_Current_Out_Limit / PIC_Current_Ki)
+
+// #define PIC_Speed_Out_Limit 7.0f
+// #define PIC_Speed_Kp 0.01f
+// #define PIC_Speed_Ki 0.10f
+// #define PIC_Speed_Int_Limit (PIC_Speed_Out_Limit / PIC_Speed_Ki)
 
 typedef struct 
 {

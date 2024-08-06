@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-12 13:09:47
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-26 14:10:56
+ * @LastEditTime: 2024-08-01 13:50:41
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\include\mcType.h
  * @Description: 
  * 
@@ -143,23 +143,18 @@ typedef struct
 
 typedef struct 
 {
-    Components2 inject_VolDQ;
+    f32_t injectVoltage;
     Components2 inject_phaseSinCos;
     Components2 response_iAlphaBeta;
     Components2 response_iDQ;
     Components2 response_HF_iDQ;
-    Components2 response_HF_iAlphaBeta;
-    Components2 response_LF_iDQ;
-    Components2 response_LF_iAlphaBeta;
     f32_t maxId,minId;
     f32_t inject_phase;
     f32_t est_eleAngle;
     f32_t est_eleSpeed;
     f32_t est_err;
-    f32_t est_angleCompensate;
-    f32_t injFrequency;
-    bool est_isCompensate;
-    bool isCompensateFinished;
+    f32_t injectFrequency;
+    f32_t PLL_Kp,PLL_Ki;
 }HFPIHandler;
 
 typedef struct 
@@ -247,8 +242,6 @@ typedef struct
 {
     f32_t xxxx;
 }LuenbergerObsHandler;
-
-
 
 #endif
 

@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-30 16:22:10
+ * @LastEditTime: 2024-08-01 14:11:31
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcVar.c
  * @Description: 
  * 
@@ -77,7 +77,7 @@ void reset_MCSysHandler(void)
     mcSystemHandler.sysRunTime = 0u;
     mcSystemHandler.safeTaskTimeCnt = 0u;
     mcSystemHandler.focTaskTimeCnt = 0u;
-    mcSystemHandler.controlMethod = eMethod_NonlinearFlux_Debug;
+    mcSystemHandler.controlMethod = eMethod_HFPI_WithoutNS;
     mcSystemHandler.focStep = eFOC_Step_1;
 
     mcSystemHandler.lowSpeedClock = 0.001f;
@@ -121,27 +121,24 @@ void reset_SensorHandler(void)
 
 void reset_HFPIHandler(void)
 {
+    hfpiHandler.injectVoltage = 1.f;
     hfpiHandler.est_eleAngle = 0.f;hfpiHandler.est_eleSpeed = 0.f;
-    hfpiHandler.inject_VolDQ.com1 = 0.f;hfpiHandler.inject_VolDQ.com2 = 0.f;
     hfpiHandler.inject_phase = 0.f;
     hfpiHandler.inject_phaseSinCos.com1 = 0.f;hfpiHandler.inject_phaseSinCos.com2 = 1.f;
-    hfpiHandler.response_HF_iAlphaBeta.com1 = 0.f;hfpiHandler.response_HF_iAlphaBeta.com2 = 0.f;
-    hfpiHandler.response_HF_iDQ.com1 = 0.f;hfpiHandler.response_HF_iDQ.com2 = 0.f;
+    hfpiHandler.response_HF_iDQ.com1 = hfpiHandler.response_HF_iDQ.com2 =0.f;
     hfpiHandler.response_iAlphaBeta.com1 = 0.f;hfpiHandler.response_iAlphaBeta.com2 = 0.f;
     hfpiHandler.response_iDQ.com1 = 0.f;hfpiHandler.response_iDQ.com2 = 0.f;
-    hfpiHandler.response_LF_iAlphaBeta.com1 = 0.f;hfpiHandler.response_LF_iAlphaBeta.com2 = 0.f;
     hfpiHandler.est_err = 0.f;
-    hfpiHandler.est_angleCompensate = 0.f;
-    hfpiHandler.est_isCompensate = false;
-    hfpiHandler.isCompensateFinished = false;
     hfpiHandler.maxId = hfpiHandler.minId = 0.f;
-    hfpiHandler.injFrequency = 400.f;
+    hfpiHandler.injectFrequency = 400.f;
+    hfpiHandler.PLL_Kp = 20.f;
+    hfpiHandler.PLL_Ki = 4.f;
 }
 
 void reset_HFSIHandler(void)
 {
     hfsiHandler.est_eleAngle = 0.f;hfsiHandler.est_eleSpeed = 0.f;
-    hfsiHandler.inject_voltage = 0.4f;
+    hfsiHandler.inject_voltage = 0.2f;
     hfsiHandler.inject_polarity = true;
     hfsiHandler.response_HF_iAlphaBeta.com1 = 0.f;hfsiHandler.response_HF_iAlphaBeta.com2 = 0.f;
     hfsiHandler.response_HF_iDQ.com1 = 0.f;hfsiHandler.response_HF_iDQ.com2 = 0.f;

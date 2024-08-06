@@ -26,6 +26,7 @@
 "stm32g431rbt6_mc_abz\mchvsensorless.o"
 "stm32g431rbt6_mc_abz\mclvsensorless.o"
 "stm32g431rbt6_mc_abz\mcsensor.o"
+"stm32g431rbt6_mc_abz\mcdigitalfilter.o"
 "..\Middlewares\ST\ARM\DSP\Lib\arm_cortexM4lf_math.lib"
 "stm32g431rbt6_mc_abz\segger_rtt.o"
 "stm32g431rbt6_mc_abz\segger_rtt_printf.o"

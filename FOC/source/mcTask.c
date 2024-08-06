@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-30 14:41:09
+ * @LastEditTime: 2024-08-06 16:32:38
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcTask.c
  * @Description: 
  * 
@@ -327,7 +327,7 @@ void PerformanceCriticalTask(void)
 
 void FOC_Method_IncABZ(void)
 {
-    Components2 iAlphaBeta,uAlphaBeta;
+    Components2 iAlphaBeta;
     Components2 piOut;
     f32_t realSpeed = pIncABZ->realEleSpeed;
     switch(pSys->focStep){
@@ -532,7 +532,6 @@ void FOC_Method_ParIdentify(void)
 
 void FOC_Method_NonlinearFlux(void)
 {
-    f32_t realEleSpeed;
     Components2 iAlphaBeta,piOut,uAlphaBeta;
     switch(pSys->focStep){
         case eFOC_Step_1:
@@ -569,7 +568,7 @@ void FOC_Method_NonlinearFlux_Debug(void)
     f32_t realEleSpeed;
     switch(pSys->focStep){
         case eFOC_Step_1:
-            if(pSys->focTaskTimeCnt++ < 20000){
+            if(pSys->focTaskTimeCnt++ < 2000){
                 pIdPIC->target = 3.f;
                 pIqPIC->target = 0.f;
                 pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
@@ -635,14 +634,19 @@ void FOC_Method_HFPI_WithoutNS(void)
                 pSVP->volDQ.com2 = piOut.com2;
             }
             else{
-                pSys->focTaskTimeCnt = 0;
+                HFPI_LPF_2stOrder_1in_1out_SetPar(1.991f,-0.915f,0.001916f,0.00186f);
+                HFPI_BPF_2stOrder_1in_1out_SetPar(1.907f,-0.9691f,0.0306f,-0.0306f);
                 pIdPIC->target = 0.f;
                 pSVP->volDQ.com1 = pSVP->volDQ.com2 = 0.f;
                 reset_CurrentPICHandler();
+                pSys->focTaskTimeCnt = 0;
                 pSys->focStep = eFOC_Step_2;
             }
             break;
         case eFOC_Step_2:
+            if(pSys->focTaskTimeCnt++ > 1000){pSys->focTaskTimeCnt = 0;pSys->focStep = eFOC_Step_3;}
+            break;
+        case eFOC_Step_3:
             pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
             injectVolD = HFPISensorlessObserver(pSens,pHFPI);
             pSVP->volDQ.com1 = injectVolD;
