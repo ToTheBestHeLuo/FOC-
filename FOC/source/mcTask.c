@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-08-06 16:32:38
+ * @LastEditTime: 2024-08-07 19:11:26
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcTask.c
  * @Description: 
  * 
@@ -25,7 +25,8 @@ static f32_t adcOffsetFilterB[100] = {0.f};
 const uint32_t lengthCurrentFilter = sizeof(adcOffsetFilterA) / sizeof(f32_t);
 
 void SectorCalModeSvpwm(volatile SvpwmHandler* svp,f32_t bus);
-Components2 CurrentPIController(volatile PIC* idPIC,volatile PIC* iqPIC,volatile Components2* idqReal);
+f32_t IdCurrentPIController(volatile PIC* idPIC,f32_t id_Real);
+f32_t IqCurrentPIController(volatile PIC* iqPIC,f32_t iq_Real);
 f32_t SpeedPIController(volatile PIC* speedPIC,f32_t realSpeed);
 
 void FOC_Method_IncABZ(void);
@@ -35,6 +36,7 @@ void FOC_Method_NonlinearFlux_Debug(void);
 void FOC_Method_IF_Luenberger(void);
 void FOC_Method_IF_Luenberger_Debug(void);
 void FOC_Method_HFPI_WithoutNS(void);
+void FOC_Method_HFSI_WithoutNS(void);
 
 void SectorVoltageLimit(volatile SvpwmHandler* svp,Components2* svpAlphaBeta)
 {
@@ -244,36 +246,36 @@ f32_t SpeedPIController(volatile PIC* speedPIC,f32_t realSpeed)
     return out;
 }
 
-Components2 CurrentPIController(volatile PIC* idPIC,volatile PIC* iqPIC,volatile Components2* idqReal)
+f32_t IdCurrentPIController(volatile PIC* idPIC,f32_t id_Real)
 {
     f32_t ts = pSys->highSpeedClock;
 
-    Components2 out;
-    f32_t err = idPIC->target - idqReal->com1;
+    f32_t err = idPIC->target - id_Real;
     idPIC->errInt += err * ts;
 
     if(idPIC->errInt > PIC_Current_Int_Limit) idPIC->errInt = PIC_Current_Int_Limit;
     else if(idPIC->errInt < -PIC_Current_Int_Limit) idPIC->errInt = -PIC_Current_Int_Limit;
 
-    out.com1 = idPIC->errInt * PIC_Current_Ki + err * PIC_Current_Kp;
+    f32_t out = idPIC->errInt * PIC_Current_Ki + err * PIC_Current_Kp;
 
-    if(out.com1 > PIC_Current_Out_Limit) out.com1 = PIC_Current_Out_Limit;
-    else if(out.com1 < -PIC_Current_Out_Limit) out.com1 = -PIC_Current_Out_Limit;
+    if(out > PIC_Current_Out_Limit) out = PIC_Current_Out_Limit;
+    else if(out < -PIC_Current_Out_Limit) out = -PIC_Current_Out_Limit;
+    return out;
+}
 
-    err = iqPIC->target - idqReal->com2;
+f32_t IqCurrentPIController(volatile PIC* iqPIC,f32_t iq_Real)
+{
+    f32_t ts = pSys->highSpeedClock;
+    f32_t err = iqPIC->target - iq_Real;
     iqPIC->errInt += err * ts;
 
     if(iqPIC->errInt > PIC_Current_Int_Limit) iqPIC->errInt = PIC_Current_Int_Limit;
     else if(iqPIC->errInt < -PIC_Current_Int_Limit) iqPIC->errInt = -PIC_Current_Int_Limit;
 
-    out.com2 = iqPIC->errInt * PIC_Current_Ki + err * PIC_Current_Kp;
+    f32_t out = iqPIC->errInt * PIC_Current_Ki + err * PIC_Current_Kp;
 
-    if(out.com2 > PIC_Current_Out_Limit) out.com2 = PIC_Current_Out_Limit;
-    else if(out.com2 < -PIC_Current_Out_Limit) out.com2 = -PIC_Current_Out_Limit;
-
-    idPIC->output = out.com1;
-    iqPIC->output = out.com2;
-
+    if(out > PIC_Current_Out_Limit) out = PIC_Current_Out_Limit;
+    else if(out < -PIC_Current_Out_Limit) out = -PIC_Current_Out_Limit;
     return out;
 }
 
@@ -307,6 +309,9 @@ void PerformanceCriticalTask(void)
             case eMethod_HFPI_WithoutNS:
                 FOC_Method_HFPI_WithoutNS();
                 break;
+            case eMethod_HFSI_WithoutNS:
+                FOC_Method_HFSI_WithoutNS();
+                break;
             default:
                 break;
         }
@@ -338,7 +343,8 @@ void FOC_Method_IncABZ(void)
                 pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
                 iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
                 pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
-                piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+                piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+                piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
                 pSVP->volDQ.com1 = piOut.com1;
                 pSVP->volDQ.com2 = piOut.com2;
             }
@@ -361,7 +367,8 @@ void FOC_Method_IncABZ(void)
             pSens->sinCosVal = Hardware_GetSinCosVal(pIncABZ->realEleAngle);
             iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
             pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
-            piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+            piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+            piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
             piOut.com1 = piOut.com1 - pSens->currentDQ.com2 * pMotor->Lq * realSpeed;
             piOut.com2 = piOut.com2 + (pSens->currentDQ.com1 * pMotor->Ld + pMotor->Flux) * realSpeed;
             pSVP->volDQ.com1 = piOut.com1;
@@ -388,7 +395,8 @@ void FOC_Method_IF_Luenberger(void)
                 pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
                 iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
                 pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
-                piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+                piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+                piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
                 pSVP->volDQ.com1 = piOut.com1;
                 pSVP->volDQ.com2 = piOut.com2;
             }
@@ -408,7 +416,8 @@ void FOC_Method_IF_Luenberger(void)
             pSens->sinCosVal = Hardware_GetSinCosVal(pIF->eleAngle);
             iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
             pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
-            piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+            piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+            piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
             pSVP->volDQ.com1 = piOut.com1;
             pSVP->volDQ.com2 = piOut.com2;
             if(pSys->focTaskTimeCnt++ < pIF->accSpeedTime){pIF->eleSpeed += pSys->highSpeedClock * pIF->accEleSpeed;}
@@ -420,7 +429,8 @@ void FOC_Method_IF_Luenberger(void)
             pSens->sinCosVal = Hardware_GetSinCosVal(pIF->eleAngle);
             iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
             pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
-            piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+            piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+            piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
             pSVP->volDQ.com1 = piOut.com1;
             pSVP->volDQ.com2 = piOut.com2;
             pIF->eleAngle += pSys->highSpeedClock * pIF->eleSpeed;
@@ -443,7 +453,8 @@ void FOC_Method_IF_Luenberger_Debug(void)
                 pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
                 iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
                 pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
-                piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+                piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+                piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
                 pSVP->volDQ.com1 = piOut.com1;
                 pSVP->volDQ.com2 = piOut.com2;
                 Hardwarre_SetABZCounter(1250);
@@ -466,7 +477,8 @@ void FOC_Method_IF_Luenberger_Debug(void)
             pSens->sinCosVal = Hardware_GetSinCosVal(pIF->eleAngle);
             iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
             pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
-            piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+            piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+            piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
             pSVP->volDQ.com1 = piOut.com1;
             pSVP->volDQ.com2 = piOut.com2;
             if(pSys->focTaskTimeCnt++ < pIF->accSpeedTime){pIF->eleSpeed += pSys->highSpeedClock * pIF->accEleSpeed;}
@@ -479,7 +491,8 @@ void FOC_Method_IF_Luenberger_Debug(void)
             pSens->sinCosVal = Hardware_GetSinCosVal(pIF->eleAngle);
             iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
             pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
-            piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+            piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+            piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
             pSVP->volDQ.com1 = piOut.com1;
             pSVP->volDQ.com2 = piOut.com2;
             pIF->eleAngle += pSys->highSpeedClock * pIF->eleSpeed;
@@ -503,7 +516,8 @@ void FOC_Method_ParIdentify(void)
                 pSens->sinCosVal = Hardware_GetSinCosVal(MATH_PI * 0.f / 180.f);
                 iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
                 pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
-                piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+                piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+                piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
                 pSVP->volDQ.com1 = piOut.com1;
                 pSVP->volDQ.com2 = piOut.com2;
             }
@@ -543,7 +557,8 @@ void FOC_Method_NonlinearFlux(void)
             iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
             pSens->currentAlphaBeta = iAlphaBeta;
             pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
-            piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+            piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+            piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
             piOut.com1 = piOut.com1 - pSens->currentDQ.com2 * pMotor->Lq * pNonlinearFlux->est_eleSpeed;
             piOut.com2 = piOut.com2 + (pSens->currentDQ.com1 * pMotor->Ld + pMotor->Flux) * pNonlinearFlux->est_eleSpeed;
             pSVP->volDQ.com1 = piOut.com1;
@@ -567,18 +582,15 @@ void FOC_Method_NonlinearFlux_Debug(void)
     f32_t realEleSpeed;
     switch(pSys->focStep){
         case eFOC_Step_1:
-<<<<<<< HEAD
-            if(pSys->focTaskTimeCnt++ < 2000){
-                pIdPIC->target = 3.f;
-=======
             if(pSys->focTaskTimeCnt++ < 20000){
                 pIdPIC->target = pIF->iqRef;
->>>>>>> 180a730de5deca967448aa5b29c9b39d9ac3e843
+
                 pIqPIC->target = 0.f;
                 pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
                 iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
                 pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
-                piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+                piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+                piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
                 pSVP->volDQ.com1 = piOut.com1;
                 pSVP->volDQ.com2 = piOut.com2;
             }
@@ -602,7 +614,8 @@ void FOC_Method_NonlinearFlux_Debug(void)
             iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
             pSens->currentAlphaBeta = iAlphaBeta;
             pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
-            piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+            piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+            piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
             piOut.com1 = piOut.com1 - pSens->currentDQ.com2 * pMotor->Lq * pNonlinearFlux->est_eleSpeed;
             piOut.com2 = piOut.com2 + (pSens->currentDQ.com1 * pMotor->Ld + pMotor->Flux) * pNonlinearFlux->est_eleSpeed;
             pSVP->volDQ.com1 = piOut.com1;
@@ -627,20 +640,22 @@ void FOC_Method_HFPI_WithoutNS(void)
     switch(pSys->focStep){
         case eFOC_Step_1:
             if(pSys->focTaskTimeCnt++ < 2000){
-                pIdPIC->target = 4.f;
+                pIdPIC->target = pIF->iqRef;
                 pIqPIC->target = 0.f;
                 pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
                 iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
                 pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
-                piOut = CurrentPIController(pIdPIC,pIqPIC,&pSens->currentDQ);
+                piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+                piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
                 pSVP->volDQ.com1 = piOut.com1;
                 pSVP->volDQ.com2 = piOut.com2;
             }
             else{
-                HFPI_LPF_2stOrder_1in_1out_SetPar(1.991f,-0.915f,0.001916f,0.00186f);
-                HFPI_BPF_2stOrder_1in_1out_SetPar(1.907f,-0.9691f,0.0306f,-0.0306f);
-                pIdPIC->target = 0.f;
+                HFPI_LPF_2stOrder_1in_1out_SetPar(1.823f,-0.8372f,0.007438f,0.00701f);
+                HFPI_BPF0_2stOrder_1in_1out_SetPar(1.907f,-0.9691f,0.0306f,-0.0306f);
+                HFPI_BPF1_2stOrder_1in_1out_SetPar(1.559f,-0.7778f,0.213f,-0.213f);
                 pSVP->volDQ.com1 = pSVP->volDQ.com2 = 0.f;
+                pSpPIC->target = 2.f * MATH_PI * 5.f;
                 reset_CurrentPICHandler();
                 pSys->focTaskTimeCnt = 0;
                 pSys->focStep = eFOC_Step_2;
@@ -650,14 +665,66 @@ void FOC_Method_HFPI_WithoutNS(void)
             if(pSys->focTaskTimeCnt++ > 1000){pSys->focTaskTimeCnt = 0;pSys->focStep = eFOC_Step_3;}
             break;
         case eFOC_Step_3:
-            pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
+            pAbs->realEleAngle = AbsEncoderCalculateRealEleAngle(pAbs);
+            pSens->sinCosVal = Hardware_GetSinCosVal(pHFPI->est_eleAngle);
             injectVolD = HFPISensorlessObserver(pSens,pHFPI);
-            pSVP->volDQ.com1 = injectVolD;
-            pSVP->volDQ.com2 = 0.f;
+            piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
+            pSVP->volDQ.com1 = injectVolD + 0.2f;
+            pSVP->volDQ.com2 = piOut.com2;
+            if(pSys->focTaskTimeCnt++ == 9u){
+                pSys->focTaskTimeCnt = 0u;
+                pIqPIC->target = SpeedPIController(pSpPIC,pHFPI->est_eleSpeed);
+            }
             break;
         default:
             break;
     }
 }
 
+
+void FOC_Method_HFSI_WithoutNS(void)
+{
+    Components2 iAlphaBeta,piOut;
+    f32_t injectVolD;
+    switch(pSys->focStep){
+        case eFOC_Step_1:
+            if(pSys->focTaskTimeCnt++ < 2000){
+                pIdPIC->target = pIF->iqRef;
+                pIqPIC->target = 0.f;
+                pSens->sinCosVal = Hardware_GetSinCosVal(0.f);
+                iAlphaBeta = Abc_AlphaBeta_Trans(&pSens->currentAB);
+                pSens->currentDQ = AlphaBeta_Dq_Trans(&iAlphaBeta,&pSens->sinCosVal);
+                piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+                piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
+                pSVP->volDQ.com1 = piOut.com1;
+                pSVP->volDQ.com2 = piOut.com2;
+            }
+            else{
+                pIdPIC->target = 0.5f;
+                pSVP->volDQ.com1 = pSVP->volDQ.com2 = 0.f;
+                pSpPIC->target = 2.f * MATH_PI * 5.f;
+                reset_CurrentPICHandler();
+                pSys->focTaskTimeCnt = 0;
+                pSys->focStep = eFOC_Step_2;
+            }
+            break;
+        case eFOC_Step_2:
+            if(pSys->focTaskTimeCnt++ > 1000){pSys->focTaskTimeCnt = 0;pSys->focStep = eFOC_Step_3;}
+            break;
+        case eFOC_Step_3:
+            pSens->sinCosVal = Hardware_GetSinCosVal(pHFSI->est_eleAngle);
+            injectVolD = HFSISensorlessObserver(pSens,pHFSI);
+            piOut.com1 = IdCurrentPIController(pIdPIC,pSens->currentDQ.com1);
+            piOut.com2 = IqCurrentPIController(pIqPIC,pSens->currentDQ.com2);
+            pSVP->volDQ.com1 = piOut.com1 + injectVolD;
+            pSVP->volDQ.com2 = piOut.com2;
+            if(pSys->focTaskTimeCnt++ == 9u){
+                pSys->focTaskTimeCnt = 0u;
+                pIqPIC->target = SpeedPIController(pSpPIC,pHFSI->est_eleSpeed);
+            }
+            break;
+        default:
+            break;
+    }
+}
 

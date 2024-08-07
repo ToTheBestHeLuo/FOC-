@@ -2,7 +2,7 @@
  * @Author: ToTheBestHeLuo 2950083986@qq.com
  * @Date: 2024-07-04 09:16:17
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-08-06 16:31:54
+ * @LastEditTime: 2024-08-07 19:07:52
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\interface\mcConfig.c
  * @Description: 
  * 
@@ -84,9 +84,10 @@ void Hardware_PerformanceTaskEvent(void)
     //     SEGGER_RTT_WriteNoLock(0,&frameForRTT,sizeof(frameForRTT));
     // }
     if(LL_DMA_GetDataLength(DMA1,LL_DMA_CHANNEL_1) == 0u){
-        frameSendForUSART.dat0 = pSens->currentAB.com1;
-        frameSendForUSART.dat1 = pHFPI->response_HF_iDQ.com1;
-        frameSendForUSART.dat2 = pHFPI->response_HF_iDQ.com2;
+        frameSendForUSART.dat0 = pHFPI->est_eleAngle;
+        frameSendForUSART.dat1 = pAbs->realEleAngle;
+        frameSendForUSART.dat2 = pSens->currentDQ.com1;
+        frameSendForUSART.dat3 = pSens->currentDQ.com2;
         LL_DMA_DisableChannel(DMA1,LL_DMA_CHANNEL_1);
         LL_DMA_SetDataLength(DMA1,LL_DMA_CHANNEL_1,sizeof(FrameSendForUSART));
         LL_DMA_EnableChannel(DMA1,LL_DMA_CHANNEL_1);
@@ -248,5 +249,10 @@ uint32_t Hardware_GetABZCounter(void)
 uint32_t Hardware_GetABZCounterDir(void)
 {   
     return (LL_TIM_GetDirection(TIM8) == LL_TIM_COUNTERDIRECTION_UP) ? 1u : 0u;
+}
+
+uint16_t Hardware_GetAbsCounter(void)
+{
+    return (((uint16_t)(pAbs->encoderOutput << 3)) >> 3) % 410;
 }
 

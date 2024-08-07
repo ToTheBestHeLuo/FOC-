@@ -2,7 +2,7 @@
  * @Author: ToTheBestHeLuo 2950083986@qq.com
  * @Date: 2024-07-17 14:40:07
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-07-26 14:09:59
+ * @LastEditTime: 2024-08-07 19:04:44
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcSensor.c
  * @Description: 
  * 
@@ -57,6 +57,27 @@ f32_t IncAbzCalculateRealEleSpeed(volatile IncABZEncoder* pABZ,f32_t targetEleSp
     return eleSpeed;
 }
 
+f32_t AbsEncoderCalculateRealEleAngle(volatile AbsEncoderHandler* pAbs)
+{
+    f32_t realEleAngle = (f32_t)Hardware_GetAbsCounter();
+    realEleAngle = (realEleAngle - 205.f) / 205.f * MATH_PI;
+    realEleAngle = realEleAngle + pAbs->absOffsetFromRealEleAngle;
+    if(realEleAngle > MATH_PI){
+        realEleAngle = -MATH_PI * 2.f + realEleAngle;
+    }
+    else if(realEleAngle < -MATH_PI){
+        realEleAngle = MATH_PI * 2.f + realEleAngle;
+    }
+    else{
+        realEleAngle = realEleAngle;
+    }
+    return -realEleAngle;
+}
+
+f32_t AbsEndoerCalculateRealEleSpeed(volatile AbsEncoderHandler* pAbs)
+{
+    return 0.f;
+}
 
 
 

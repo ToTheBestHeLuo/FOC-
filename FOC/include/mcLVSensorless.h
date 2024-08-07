@@ -14,7 +14,8 @@
 #include "mcVar.h"
 
 extern void HFPI_LPF_2stOrder_1in_1out_SetPar(f32_t k1,f32_t k2,f32_t k3,f32_t k4);
-extern void HFPI_BPF_2stOrder_1in_1out_SetPar(f32_t k1,f32_t k2,f32_t k3,f32_t k4);
+extern void HFPI_BPF0_2stOrder_1in_1out_SetPar(f32_t k1,f32_t k2,f32_t k3,f32_t k4);
+extern void HFPI_BPF1_2stOrder_1in_1out_SetPar(f32_t k1,f32_t k2,f32_t k3,f32_t k4);
 extern f32_t HFPISensorlessObserver(volatile SensorHandler* sens,volatile HFPIHandler* hfpi);
 
 extern f32_t HFSISensorlessObserver(volatile SensorHandler* sens,volatile HFSIHandler* hfsi);

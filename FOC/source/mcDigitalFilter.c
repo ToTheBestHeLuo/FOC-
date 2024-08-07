@@ -2,7 +2,7 @@
  * @Author: ToTheBestHeLuo 2950083986@qq.com
  * @Date: 2024-08-01 11:07:24
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-08-01 13:04:48
+ * @LastEditTime: 2024-08-07 11:07:09
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcDigitalFilter.c
  * @Description: 
  * 
@@ -35,7 +35,7 @@ void LPF_1stOrder_1in_1out_SetPar(LPF_1stOrder_1in_1out_Handler* lpf,f32_t k1,f3
  */
 f32_t LPF_1stOrder_1in_1out_Calculate(LPF_1stOrder_1in_1out_Handler* lpf,f32_t in)
 {
-    lpf->out1 = lpf->out1 * lpf->k2 + in * lpf->k2;
+    lpf->out1 = lpf->out1 * lpf->k1 + in * lpf->k2;
     return lpf->out1;
 }
 /**

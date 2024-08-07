@@ -30,6 +30,7 @@ extern volatile NSCheckHandler NSHandler;
 extern volatile NonlinearFluxObsHandler NonlinearFluxHandler;
 extern volatile OpenLoop_IF_Handler IFHandler;
 extern volatile LuenbergerObsHandler luenbergerObsHandler;
+extern volatile AbsEncoderHandler absEncoderHandler;
 
 extern volatile MCSysHandler* pSys;
 extern volatile SvpwmHandler* pSVP;
@@ -47,6 +48,7 @@ extern volatile NSCheckHandler* pNS;
 extern volatile NonlinearFluxObsHandler* pNonlinearFlux;
 extern volatile OpenLoop_IF_Handler* pIF;
 extern volatile LuenbergerObsHandler* pLuenberger;
+extern volatile AbsEncoderHandler* pAbs;
 
 extern void reset_All(void);
 extern void reset_MCSysHandler(void);
@@ -64,5 +66,6 @@ extern void reset_NSCheckHandler(void);
 extern void reset_NonlinearFluxObsHandler(void);
 extern void reset_IFHandler(void);
 extern void reset_Luenberger(void);
+extern void reset_AbsEncoderHandler(void);
 #endif
 

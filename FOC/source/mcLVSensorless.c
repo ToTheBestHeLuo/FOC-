@@ -2,7 +2,7 @@
  * @Author: ToTheBestHeLuo 2950083986@qq.com
  * @Date: 2024-07-17 11:08:21
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-08-01 16:35:01
+ * @LastEditTime: 2024-08-07 16:43:16
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcLVSensorless.c
  * @Description: 
  * 
@@ -13,19 +13,24 @@
 #include "../interface/mcConfig.h"
 #include "../include/mcDigitalFilter.h"
 
-static LPF_2stOrder_1in_1out_Handler lpf2stOrder0,lpf2stOrder1,lpf2stOrder2;
-static BPF_2stOrder_1in_1out_Handler bpf2stOrder0,bpf2stOrder1;
+static LPF_2stOrder_1in_1out_Handler lpf2stOrder0,lpf2stOrder1;
+static BPF_2stOrder_1in_1out_Handler bpf2stOrder0,bpf2stOrder1,bpf2stOrder2;
 
 void HFPI_LPF_2stOrder_1in_1out_SetPar(f32_t k1,f32_t k2,f32_t k3,f32_t k4)
 {
     LPF_2stOrder_1in_1out_SetPar(&lpf2stOrder0,k1,k2,k3,k4);
     LPF_2stOrder_1in_1out_SetPar(&lpf2stOrder1,k1,k2,k3,k4);
-    LPF_2stOrder_1in_1out_SetPar(&lpf2stOrder2,k1,k2,k3,k4);
 }
-void HFPI_BPF_2stOrder_1in_1out_SetPar(f32_t k1,f32_t k2,f32_t k3,f32_t k4)
+
+void HFPI_BPF0_2stOrder_1in_1out_SetPar(f32_t k1,f32_t k2,f32_t k3,f32_t k4)
 {
     BPF_2stOrder_1in_1out_SetPar(&bpf2stOrder0,k1,k2,k3,k4);
     BPF_2stOrder_1in_1out_SetPar(&bpf2stOrder1,k1,k2,k3,k4);
+}
+
+void HFPI_BPF1_2stOrder_1in_1out_SetPar(f32_t k1,f32_t k2,f32_t k3,f32_t k4)
+{
+    BPF_2stOrder_1in_1out_SetPar(&bpf2stOrder2,k1,k2,k3,k4);
 }
 
 f32_t HFPISensorlessObserver(volatile SensorHandler* sens,volatile HFPIHandler* hfpi)
@@ -50,13 +55,12 @@ f32_t HFPISensorlessObserver(volatile SensorHandler* sens,volatile HFPIHandler* 
     hfpi->response_HF_iDQ.com2 = BPF_2stOrder_1in_1out_Calculate(&bpf2stOrder1,hfpi->response_iDQ.com2);
 
     sens->currentDQ.com1 = LPF_2stOrder_1in_1out_Calculate(&lpf2stOrder0,hfpi->response_iDQ.com1 - hfpi->response_HF_iDQ.com1);
-    sens->currentDQ.com1 = LPF_2stOrder_1in_1out_Calculate(&lpf2stOrder1,hfpi->response_iDQ.com2 - hfpi->response_HF_iDQ.com2);
+    sens->currentDQ.com2 = LPF_2stOrder_1in_1out_Calculate(&lpf2stOrder1,hfpi->response_iDQ.com2 - hfpi->response_HF_iDQ.com2);
 
-    f32_t tmp = hfpi->response_HF_iDQ.com2 * hfpi->inject_phaseSinCos.com1;
+    f32_t tmp = hfpi->response_HF_iDQ.com2 * hfpi->inject_phaseSinCos.com2;
+    tmp = tmp - BPF_2stOrder_1in_1out_Calculate(&bpf2stOrder2,tmp);
 
-    tmp = LPF_2stOrder_1in_1out_Calculate(&lpf2stOrder2,tmp);
-
-    hfpi->est_err = tmp;
+    hfpi->est_err = tmp * 1000.f;
 
     static f32_t errInt0 = 0.f;
     static f32_t errInt1 = 0.f;
@@ -109,23 +113,15 @@ void HFSI_Observer(volatile HFSIHandler* hfsi)
 f32_t HFSISensorlessObserver(volatile SensorHandler* sens,volatile HFSIHandler* hfsi)
 {
     hfsi->response_iAlphaBeta = Abc_AlphaBeta_Trans(&sens->currentAB);
-
     Components2 iDQNow = AlphaBeta_Dq_Trans(&hfsi->response_iAlphaBeta,&sens->sinCosVal);
-
     sens->currentDQ = iDQNow;
     hfsi->response_iDQ = iDQNow;
 
-    hfsi->response_LF_iDQ.com1 = 0.5f * (iDQNow.com1 + hfsi->iDQLast.com1);
-    hfsi->response_LF_iDQ.com2 = 0.5f * (iDQNow.com2 + hfsi->iDQLast.com2);
+    sens->currentDQ.com1 = 0.5f * (iDQNow.com1 + hfsi->iDQLast.com1);
+    sens->currentDQ.com2 = 0.5f * (iDQNow.com2 + hfsi->iDQLast.com2);
 
     f32_t iAlphaHF = (hfsi->response_iAlphaBeta.com1 - hfsi->iAlphaBetaLast.com1) * 0.5f;
     f32_t iBetaHF = (hfsi->response_iAlphaBeta.com2 - hfsi->iAlphaBetaLast.com2) * 0.5f;
-
-    f32_t iAlphaLF = (hfsi->response_iAlphaBeta.com1 + hfsi->iAlphaBetaLast.com1) * 0.5f;
-    f32_t iBetaLF = (hfsi->response_iAlphaBeta.com2 + hfsi->iAlphaBetaLast.com2) * 0.5f;
-
-    hfsi->response_LF_iAlphaBeta.com1 = iAlphaLF;
-    hfsi->response_LF_iAlphaBeta.com2 = iBetaLF;
 
     if(hfsi->inject_polarity){
         iAlphaHF *= -1.f;

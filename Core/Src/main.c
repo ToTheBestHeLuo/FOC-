@@ -198,12 +198,12 @@ int main(void)
 
   LL_COMP_Enable(COMP1);
   /*===========================SPI + DMA===============================*/
-  // LL_SPI_EnableDMAReq_RX(SPI2);
-  // LL_SPI_Enable(SPI2);
+  LL_SPI_EnableDMAReq_RX(SPI2);
+  LL_SPI_Enable(SPI2);
 
-  // LL_DMA_ConfigAddresses(DMA2,LL_DMA_CHANNEL_1,(uint32_t)&SPI2->DR,(uint32_t)&absRotorPos,LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
-  // LL_DMA_SetDataLength(DMA2,LL_DMA_CHANNEL_1,0xFFFF);
-  // LL_DMA_EnableChannel(DMA2,LL_DMA_CHANNEL_1);
+  LL_DMA_ConfigAddresses(DMA2,LL_DMA_CHANNEL_1,(uint32_t)&SPI2->DR,(uint32_t)&pAbs->encoderOutput,LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
+  LL_DMA_SetDataLength(DMA2,LL_DMA_CHANNEL_1,0xFFFF);
+  LL_DMA_EnableChannel(DMA2,LL_DMA_CHANNEL_1);
   /*===========================USART1 + TX +DMA===============================*/
   LL_USART_EnableDMAReq_TX(USART1);
   LL_DMA_ConfigAddresses(DMA1,LL_DMA_CHANNEL_1,(uint32_t)&frameSendForUSART,(uint32_t)&USART1->TDR,LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
@@ -1101,6 +1101,25 @@ static void MX_SPI2_Init(void)
   GPIO_InitStruct.Alternate = LL_GPIO_AF_5;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /* SPI2 DMA Init */
+
+  /* SPI2_RX Init */
+  LL_DMA_SetPeriphRequest(DMA2, LL_DMA_CHANNEL_1, LL_DMAMUX_REQ_SPI2_RX);
+
+  LL_DMA_SetDataTransferDirection(DMA2, LL_DMA_CHANNEL_1, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
+
+  LL_DMA_SetChannelPriorityLevel(DMA2, LL_DMA_CHANNEL_1, LL_DMA_PRIORITY_LOW);
+
+  LL_DMA_SetMode(DMA2, LL_DMA_CHANNEL_1, LL_DMA_MODE_CIRCULAR);
+
+  LL_DMA_SetPeriphIncMode(DMA2, LL_DMA_CHANNEL_1, LL_DMA_PERIPH_NOINCREMENT);
+
+  LL_DMA_SetMemoryIncMode(DMA2, LL_DMA_CHANNEL_1, LL_DMA_MEMORY_NOINCREMENT);
+
+  LL_DMA_SetPeriphSize(DMA2, LL_DMA_CHANNEL_1, LL_DMA_PDATAALIGN_HALFWORD);
+
+  LL_DMA_SetMemorySize(DMA2, LL_DMA_CHANNEL_1, LL_DMA_MDATAALIGN_HALFWORD);
+
   /* USER CODE BEGIN SPI2_Init 1 */
 
   /* USER CODE END SPI2_Init 1 */
@@ -1688,6 +1707,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel2_IRQn interrupt configuration */
   NVIC_SetPriority(DMA1_Channel2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
   NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+  /* DMA2_Channel1_IRQn interrupt configuration */
+  NVIC_SetPriority(DMA2_Channel1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  NVIC_EnableIRQ(DMA2_Channel1_IRQn);
   /* DMA2_Channel2_IRQn interrupt configuration */
   NVIC_SetPriority(DMA2_Channel2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
   NVIC_EnableIRQ(DMA2_Channel2_IRQn);

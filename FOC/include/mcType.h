@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-12 13:09:47
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-08-01 13:50:41
+ * @LastEditTime: 2024-08-07 18:53:54
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\include\mcType.h
  * @Description: 
  * 
@@ -38,7 +38,8 @@ typedef enum{
     eMethod_NonlinearFlux_Debug = 4,
     eMethod_IF_Luenberger = 5,
     eMethod_IF_Luenberger_Debug = 6,
-    eMethod_HFPI_WithoutNS = 7
+    eMethod_HFPI_WithoutNS = 7,
+    eMethod_HFSI_WithoutNS = 8
 }MC_ControlMethod;
 
 typedef enum{
@@ -105,6 +106,13 @@ typedef struct
     f32_t realEleSpeed,realEleAngle,lowEleSpeedThreshold,highEleSpeedThreshold;
 }IncABZEncoder;
 
+typedef struct
+{
+    uint16_t encoderOutput;
+    f32_t absOffsetFromRealEleAngle;
+    f32_t realEleAngle;
+}AbsEncoderHandler;
+
 typedef struct 
 {
     f32_t motorVoltage;
@@ -164,8 +172,6 @@ typedef struct
     Components2 response_iDQ;
     Components2 response_HF_iDQ;
     Components2 response_HF_iAlphaBeta;
-    Components2 response_LF_iDQ;
-    Components2 response_LF_iAlphaBeta;
     Components2 response_HF_iAlphaBetaPerUnit;
     f32_t inject_voltage;   
     f32_t int1,int2;

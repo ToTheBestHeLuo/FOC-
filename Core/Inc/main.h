@@ -70,7 +70,6 @@ extern "C" {
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
 extern volatile uint16_t tempDat;
-extern volatile uint16_t absRotorPos;
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/

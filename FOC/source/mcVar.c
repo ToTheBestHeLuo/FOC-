@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-11-14 10:55:42
  * @LastEditors: ToTheBestHeLuo 2950083986@qq.com
- * @LastEditTime: 2024-08-01 14:11:31
+ * @LastEditTime: 2024-08-07 19:19:38
  * @FilePath: \MDK-ARMd:\stm32cube\stm32g431rbt6_mc_ABZ\FOC\source\mcVar.c
  * @Description: 
  * 
@@ -30,6 +30,7 @@ volatile NSCheckHandler NSHandler;
 volatile NonlinearFluxObsHandler NonlinearFluxHandler;
 volatile OpenLoop_IF_Handler IFHandler;
 volatile LuenbergerObsHandler luenbergerObsHandler;
+volatile AbsEncoderHandler absEncoderHandler;
 
 volatile MCSysHandler* pSys = &mcSystemHandler;
 volatile SvpwmHandler* pSVP = &svpwmHandler;
@@ -47,6 +48,7 @@ volatile NSCheckHandler* pNS = &NSHandler;
 volatile NonlinearFluxObsHandler* pNonlinearFlux = &NonlinearFluxHandler;
 volatile OpenLoop_IF_Handler* pIF = &IFHandler;
 volatile LuenbergerObsHandler* pLuenberger = &luenbergerObsHandler;
+volatile AbsEncoderHandler* pAbs = &absEncoderHandler;
 
 void reset_All(void)
 {
@@ -68,6 +70,7 @@ void reset_All(void)
 
     reset_IFHandler();
     reset_Luenberger();
+    reset_AbsEncoderHandler();
 }
 void reset_MCSysHandler(void)
 {
@@ -121,35 +124,34 @@ void reset_SensorHandler(void)
 
 void reset_HFPIHandler(void)
 {
-    hfpiHandler.injectVoltage = 1.f;
+    hfpiHandler.injectVoltage = 0.2f;
     hfpiHandler.est_eleAngle = 0.f;hfpiHandler.est_eleSpeed = 0.f;
     hfpiHandler.inject_phase = 0.f;
     hfpiHandler.inject_phaseSinCos.com1 = 0.f;hfpiHandler.inject_phaseSinCos.com2 = 1.f;
-    hfpiHandler.response_HF_iDQ.com1 = hfpiHandler.response_HF_iDQ.com2 =0.f;
+    hfpiHandler.response_HF_iDQ.com1 = hfpiHandler.response_HF_iDQ.com2 = 0.f;
     hfpiHandler.response_iAlphaBeta.com1 = 0.f;hfpiHandler.response_iAlphaBeta.com2 = 0.f;
     hfpiHandler.response_iDQ.com1 = 0.f;hfpiHandler.response_iDQ.com2 = 0.f;
     hfpiHandler.est_err = 0.f;
     hfpiHandler.maxId = hfpiHandler.minId = 0.f;
     hfpiHandler.injectFrequency = 400.f;
-    hfpiHandler.PLL_Kp = 20.f;
-    hfpiHandler.PLL_Ki = 4.f;
+    hfpiHandler.PLL_Kp = 0.1f;
+    hfpiHandler.PLL_Ki = 1.f;
 }
 
 void reset_HFSIHandler(void)
 {
     hfsiHandler.est_eleAngle = 0.f;hfsiHandler.est_eleSpeed = 0.f;
-    hfsiHandler.inject_voltage = 0.2f;
+    hfsiHandler.inject_voltage = 0.4f;
     hfsiHandler.inject_polarity = true;
     hfsiHandler.response_HF_iAlphaBeta.com1 = 0.f;hfsiHandler.response_HF_iAlphaBeta.com2 = 0.f;
     hfsiHandler.response_HF_iDQ.com1 = 0.f;hfsiHandler.response_HF_iDQ.com2 = 0.f;
     hfsiHandler.response_iAlphaBeta.com1 = 0.f;hfsiHandler.response_iAlphaBeta.com2 = 0.f;
-    hfsiHandler.response_LF_iAlphaBeta.com1 = 0.f;hfsiHandler.response_LF_iAlphaBeta.com2 = 0.f;
     hfsiHandler.response_HF_iAlphaBetaPerUnit.com1 = 0.f;hfsiHandler.response_HF_iAlphaBetaPerUnit.com2 = 0.f;
     hfsiHandler.est_err = 0.f;
     hfsiHandler.int1 = 0.f;hfsiHandler.int2 = 0.f;
     hfsiHandler.response_iDQ.com1 = hfsiHandler.response_iDQ.com2 = 0.f;
-    hfsiHandler.kP = 200.f;
-    hfsiHandler.kI = 10.f;
+    hfsiHandler.kP = 20.f;
+    hfsiHandler.kI = 0.1f;
     hfsiHandler.iAlphaBetaLast.com1 = hfsiHandler.iAlphaBetaLast.com2 = 0.f;
     hfsiHandler.iDQLast.com1 = hfsiHandler.iDQLast.com2 = 0.f;
 }
@@ -255,6 +257,13 @@ void reset_IFHandler(void)
 void reset_Luenberger(void)
 {
 
+}
+
+void reset_AbsEncoderHandler(void)
+{
+    pAbs->absOffsetFromRealEleAngle = -3.2390424;
+    pAbs->encoderOutput = 0u;
+    pAbs->realEleAngle = 0.f;
 }
 
 
